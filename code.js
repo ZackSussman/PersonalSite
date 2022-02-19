@@ -1,6 +1,6 @@
 var socials = document.getElementById('Socials');
 var nameBox = document.getElementById('nameBox');
-let iconsDownColorString = "rgba(194, 194, 194, 255)";
+let iconsDownColorString = "rgba(230, 230, 230, 255)";
 let iconsUpColorString = "rgba(0, 0,0, 0";
 var scrolledUp = true;
 
@@ -27,4 +27,5 @@ nameBox.onmouseleave = () => {
 window.onload = () => {
     setTimeout(() => {console.log("set to 0");
     nameBox.style.marginTop = "0";}, 300);
+    
 }
