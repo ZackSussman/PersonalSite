@@ -41,18 +41,50 @@ const length22Words = new Set(['electroencephalography']);
   
   <div class="slidecontainer">
     <span class="invisible">?</span>
-    <input type="range" min="1" max="1000" value="500" class="slider" id="sliderValue">
+    <input type="range" min="1" max="1000" value="500" class="slider" id="sliderValue" onchange="turnOffHyperspeed()">
     <button onclick="hyperspeed()" class="hyperspeed"><em>hyperspeed</em></button>
+    <span id="checkboxContainer">
+      <input type="checkbox" id="safemode" onclick="updateSafemode()">
+    </span>
     <span class="tooltip2">?
-      <span class="tooltiptext">Control the speed of the letter changes! Use the hyperspeed button to blast your way to the end. Warning: usage of the hyperspeed button with large words can freeze the site.</span>
+      <span class="tooltiptext">Control the speed of the letter changes! Use the hyperspeed button to blast your way to the end. Turn off the green square to stop limiting the word sequence output to 200,000 words. Warning: Without this limit the site is more likely to freeze.</span>
     </span>
   <form action="/url" method="GET">
-    <input id="textbox" type="value" autocomplete="off" placeholder="please enter a valid word">
+    <input id="textbox" type="value" autocomplete="off" placeholder="please enter a word">
   </form>
   <button onclick="runscramble()" type="button" id="goButton">Go</button>
   <h1 id="output" class="dropshadow"></h1>
+  <p id="warning"></p>
   <p id="journey"></p>
   <script>
+
+  var hasNotMovedCheck = true;
+  var input = document.getElementById("textbox");
+  document.getElementById("safemode").checked = true;
+  // Execute a function when the user presses a key on the keyboard
+  input.addEventListener("keypress", function(event) {
+    // If the user presses the "Enter" key on the keyboard
+    if (event.key === "Enter") {
+      // Cancel the default action, if needed
+      event.preventDefault();
+      // Trigger the button element with a click
+      runscramble();
+    }
+  });
+
+      function turnOffHyperspeed() {
+        console.log("we got called");
+        hyperspeedValue = false;
+      }
+      function updateSafemode() {
+        if (document.getElementById("safemode").checked) {
+          document.getElementById("checkboxContainer").style.backgroundColor = "rgba(85, 91, 88, 0.125)";
+        }
+        else {
+          document.getElementById("checkboxContainer").style.backgroundColor = "rgba(35, 126, 97, 1)"; 
+        }
+        hasNotMovedCheck = false;
+      }
       function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
       }     
@@ -78,36 +110,56 @@ const length22Words = new Set(['electroencephalography']);
           return finalWord;
         }
         let original = document.getElementById("textbox").value;
-        if (original == "" || !(isWord(original))) {
+        if (original == "") {
           document.getElementById("textbox").value = "";
           return;
         }
-        document.getElementById("textbox").value = updateWord(document.getElementById("textbox").value);
-        var journey = original + " → " + document.getElementById("textbox").value;
-        var numTimes = 1;
-        await sleep(1001 - document.getElementById("sliderValue").value);
-        document.getElementById("textbox").disabled = true;
-        document.getElementById("goButton").disabled = true;
-        hyperspeedValue = false;
-        while (!(isWord(document.getElementById("textbox").value))) {
+        async function crazyComputation() {
           document.getElementById("textbox").value = updateWord(document.getElementById("textbox").value);
-          numTimes += 1;
-          journey += " → " + document.getElementById("textbox").value;
-          if (!hyperspeedValue) {
-            await sleep(1001 - document.getElementById("sliderValue").value);
+          var journey = original + " → " + document.getElementById("textbox").value;
+          var numTimes = 1;
+          var cutWords = false;
+          await sleep(1001 - document.getElementById("sliderValue").value);
+          document.getElementById("textbox").disabled = true;
+          document.getElementById("goButton").disabled = true;
+          hyperspeedValue = false;
+          while (!(isWord(document.getElementById("textbox").value))) {
+            document.getElementById("textbox").value = updateWord(document.getElementById("textbox").value);
+            numTimes += 1;
+            journey += " → " + document.getElementById("textbox").value;
+            if (!hyperspeedValue) {
+              await sleep(1001 - document.getElementById("sliderValue").value);
+            }
+            else if (hasNotMovedCheck || !document.getElementById("safemode").checked) {
+              if (numTimes > 200000) {
+                journey = journey.substring(0, 100000) + "..." + journey.substring(journey.length - 100000, journey.length);
+                cutWords = true;
+              }
+            }
+            if (hyperspeedValue && numTimes % 50000 == 0) {
+              await sleep(1);
+            }
           }
+          document.getElementById("textbox").disabled = false;
+          document.getElementById("goButton").disabled = false;
+          var end = " steps";
+          if (numTimes == 1) {
+            end = " step";
+          }
+          let link = "https://www.google.com/search?q=define+" + document.getElementById("textbox").value;
+          document.getElementById("output").innerHTML = (original + " → " + '<a href="' + link + '" target="_blank">'  + document.getElementById("textbox").value + "</a>" + " in " + numTimes.toString() + end);
+          if (cutWords) {
+            document.getElementById("warning").innerHTML = "log shows the first and last 100,000 words";
+          }
+          else {
+            document.getElementById("warning").innerHTML = "";
+          }
+          document.getElementById("journey").innerHTML = journey;
+          document.getElementById("sliderValue").style.marginTop = 0;
+          hyperspeedValue = false;
         }
-        document.getElementById("textbox").disabled = false;
-        document.getElementById("goButton").disabled = false;
-        var end = " steps";
-        if (numTimes == 1) {
-           end = " step";
-        }
-        let link = "https://www.google.com/search?q=define+" + document.getElementById("textbox").value;
-        document.getElementById("output").innerHTML = (original + " → " + '<a href="' + link + '" target="_blank">'  + document.getElementById("textbox").value + "</a>" + " in " + numTimes.toString() + end);
-        document.getElementById("journey").innerHTML = journey;
-        document.getElementById("sliderValue").style.marginTop = 0;
-        hyperspeedValue = false;
+        setTimeout(crazyComputation, 0);
+
       }
   </script>
 </body>

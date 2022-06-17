@@ -127,7 +127,7 @@ div.slidecontainer {
   
   .tooltip .tooltiptext {
 	visibility: hidden;
-	width: 120px;
+	width: 240px;
 	color: rgb(0, 0, 0);
 	text-align: center;
 	border-radius: 6px;
@@ -137,9 +137,10 @@ div.slidecontainer {
 	/* Position the tooltip */
 	position: absolute;
 	z-index: 5;
-	margin-left: 16px;
+	margin-left: 20px;
 	padding: 10px;
 	color: black;
+	height: 50px;
   }
 
     
@@ -197,4 +198,40 @@ a {
 
 button.hyperspeed:active{
 	background-color: rgb(63, 184, 182);
+}
+
+span#checkboxContainer {
+	width: 20px;
+	height: 20px;
+	background-color: rgba(35, 126, 97, 1); 
+	color:rgb(230, 230, 230);
+	border-radius: 20%;
+	border-color: rgba(230, 230, 230, 0.275);
+	border-style:solid;
+	display:inline-block;
+	transform:translateY(5px);
+	margin-left: 4px;
+}
+
+input[type="checkbox" i] {
+	width: 20px;
+	height: 20px;
+    background-color: initial;
+    cursor: default;
+    appearance: auto;
+	transform:translateX(-4px) translateY(-3px);
+	padding: none !important;
+	margin: none !important;
+	opacity: 0;
+}
+
+p#warning {
+	color: rgb(92, 71, 71);
+	font-size: 13px;
+	margin-bottom: 2px !important;
+	text-align: left;
+}
+
+p#journey {
+	margin-top: 3px;
 }
