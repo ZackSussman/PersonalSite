@@ -750,7 +750,6 @@ function getAllCorrespondingRealHands(unknownPocketHand) {
 
 
 
-
 class Range {
 	constructor(unknownPocketHands) {
 		this.unknownPocketHands = unknownPocketHands;

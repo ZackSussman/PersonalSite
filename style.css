@@ -145,7 +145,6 @@ div#websites {
 }
 
 
-
 div#topBar {
     top: 0;
     left: 0;
@@ -170,15 +169,14 @@ div#topBar {
 
 a.website {
     color:rgb(35, 178, 181);
-    width: 30px;
+    width: 200px; 
     height: 20px;
-    padding: 30px;
+    padding: 27px;
     color:rgb(255, 255, 255);
     font-size: 20px;
     text-align: center;
     text-decoration: none;
     z-index: 2;
-    transform: translateY(-3px);
 }
 
 
