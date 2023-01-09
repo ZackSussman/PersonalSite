@@ -1,0 +1,460 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+</head>
+<link rel="stylesheet" type="text/css" href="style.css" />
+<script src="poker.js"></script>
+<body>
+	<div class="page">
+		<div class="allInputs">
+			<div class="range">
+				<h1 class="rangeTitle"> opponent range </h1>
+				<canvas id="grid" width="504px" height="504px" style="background: #fff; margin:20px"></canvas>
+				<p class="percentage" id="rangePercentage">0%</p>
+				<div class="underCanvas">
+					<button onclick="exportRange()" class="button-4" id="exportRange">export range</button>
+					<button onclick="loadRange()" class="button-4" id="loadRange">load range</button>
+				</div>
+			</div>
+			<div class="inputs">
+				<div class="form">
+					<input type="text" id="yourhand" class="form__input" autocomplete="off" placeholder=" " onkeyup="trackYourHand()">	
+							<label for="yourhand" class="form__label" id="yourHandLabel">your hand</label><br>
+				</div>
+
+			
+				<div class="form">
+					<input type="text" id="flop" class="form__input" autocomplete="off" placeholder=" " onkeyup="trackFlop()">
+						<label for="flop" class="form__label">flop</label><br>
+				</div>
+
+
+				<div class="form">
+				<input type="text" id="turn" class="form__input" autocomplete="off" placeholder=" " onkeyup="trackTurn()">
+					<label for="turn" class="form__label">turn</label><br>
+				</div>
+
+				<div class="form">
+					<button class="button-4" role="button" onclick="compute()">compute</button>
+				</div>
+			</div>
+		</div>
+		<div class="progress">
+			<h1 id="result"></h1>
+			<progress id="progressBar" value="0" max="100"></progress>
+		</div>
+	</div>
+</body>
+
+
+<script>
+	let cards = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"]
+	var range = [];
+	for (var i = 0; i < cards.length; i += 1) {
+		for (var j = 0; j < cards.length; j += 1) {
+			if (i > j) {
+				range.push([cards[i] + cards[j] + "o", 0]);
+			}
+			else if (i == j) {
+				range.push([cards[i] + cards[j], 0]);
+			}
+			else {
+				range.push([cards[i] + cards[j] + "s", 0]);
+			}
+		}
+	}
+	var ourHand = undefined;
+	var flop = undefined;
+	var turn = undefined;
+	// total width
+	var bw = 500;
+	// total height
+	var bh = 500;
+	// Padding
+	var p = 2;
+	var rowSize = 13;
+	var mouseDown = false;
+	var mostRecentlyChangedSquare = undefined;
+	var hovering = undefined;
+	
+	var canvas = document.getElementById("grid");
+	//var context = canvas.getContext("2d");
+
+	function rowColToXY(row, col) {
+		return [p + col*bw/rowSize, p + row*bh/rowSize];
+	}
+	function XYToRowCol(x, y) {
+		return [Math.floor((y - p)*rowSize/bh), Math.floor((x - p)*rowSize/bw)];
+	}
+
+
+	function create_rectangle(context, tlx, tly, brx, bry) {
+			context.moveTo(tlx, tly);
+			context.lineTo(tlx, bry);
+			context.lineTo(brx, bry);
+			context.lineTo(brx, tly);
+			context.lineTo(tlx, tly);
+	}
+
+	function singularBox(i) {
+		let newContext = canvas.getContext('2d');
+		let rowNum = Math.floor(i / rowSize);
+		let colNum = i % rowSize;
+		let [x1, y1] = rowColToXY(rowNum, colNum);
+		let [x2, y2] = rowColToXY(rowNum + 1, colNum + 1);
+		let context2 = canvas.getContext("2d");
+		let normalFillColor = rowNum == colNum ? "rgb(0, 75, 152)": (rowNum > colNum ? "rgb(0, 50, 125) " : "rgb(0, 100, 180) ");
+		context2.fillStyle = range[i][1] == 0 ? normalFillColor : "rgba(0, 170, 100, 1)";
+		var blowup = 0;
+		if (hovering !== undefined && hovering[0] === rowNum && hovering[1] === colNum) {
+			blowup = -2;
+		}
+		if (range[i][1] == 1) {
+			context2.fillRect(x1 - blowup, y1 - blowup, bw/rowSize + 2*blowup, bh/rowSize + 2*blowup);
+		}
+		else {
+			context2.fillRect(x1 - blowup, y1 - blowup, bw/rowSize + 2*blowup, bh/rowSize + 2*blowup);
+		}
+		let text = range[i][0];
+		//let shiftX = text.length == 2 ? -8 : (text.includes("Q") ? -13 : -11); //accounts for the length of the text itself
+		let shiftY = 5; //accounts for the height of the text itself
+		context2.font = "bold 13px Arial";
+		context2.textAlign = "center";
+		context2.fillStyle = "white";
+		if (rowNum > colNum) {
+			text = text[1] + text[0] + text[2]
+		}
+		context2.fillText(text, (x1 + x2)/2, (y1 + y2)/2 + shiftY);
+		newContext.strokeStyle = range[i][1] == 0 ? "white" : "black";
+		create_rectangle(newContext, x1, y1, x2, y2);
+		newContext.lineWidth = 2;
+		//newContext.stroke();
+	}
+
+	function drawBoard(){
+		canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
+		for (var i = 0; i < rowSize*rowSize; i += 1) {
+			singularBox(i);
+		}	
+	}
+
+	function computePercentage() {
+		percentage = 0.0;
+		for (var i = 0; i < range.length; i++) {
+			if (range[i][1]) {
+				let row = Math.floor(i / rowSize);
+				let col = i % rowSize;
+				if (row == col) {
+					percentage += 6/1326;
+				}
+				else if (row < col) {
+					percentage += 4/1326;
+				}
+				else {
+					percentage += 12/1326;
+				}
+			}
+		}
+		document.getElementsByClassName("percentage")[0].innerHTML = (Math.round(10000 * percentage)/100).toString() + "%";
+	}
+
+	function updateSquares(x, y) {
+		if (x < 2) {
+			return;
+		}
+		let [row, col] = XYToRowCol(x, y);	
+			function notEqual(a, b) {
+				if (a === undefined) {
+					return true;
+				}
+				return a[0] !== b[0] || a[1] !== b[1];
+			}
+			if (notEqual(mostRecentlyChangedSquare, [row, col])) {
+				range[rowSize*row + col] = [range[rowSize*row + col][0], 1 - range[rowSize*row + col][1]];
+				mostRecentlyChangedSquare = [row, col];
+				drawBoard();
+		}
+		computePercentage();
+	}
+	
+	document.addEventListener('mousedown', function(e) {
+		mouseDown = true
+		const rect = canvas.getBoundingClientRect()
+    	const x = event.clientX - rect.left
+    	const y = event.clientY - rect.top
+		if (x > 0 && y > 0 && x < 500 && y < 500) {
+			updateSquares(x, y);
+		}
+	})
+	document.addEventListener('mouseup', function(e) {
+		mouseDown = false;
+		mostRecentlyChangedSquare = undefined; //allows them to click and then click again to deactivate the same square
+	});
+
+	document.addEventListener('mousemove', function(e) {
+		const rect = canvas.getBoundingClientRect()
+    	const x = event.clientX - rect.left
+    	const y = event.clientY - rect.top
+		if (x > 0 && y > 0 && x < 500 && y < 500) {
+			hovering = XYToRowCol(x, y);
+			if (mouseDown) {
+				updateSquares(x, y);
+			}
+			else {
+				drawBoard();
+			}
+		}
+		else {
+			hovering = undefined;
+			drawBoard();
+		}
+	});
+	
+	drawBoard();
+
+	function trackYourHand() {
+		let suits = ["h", "s", "d", "c"];
+		function fail() {
+			document.getElementById("yourhand").style.color = "red";
+			ourHand = undefined
+		}
+		let text = document.getElementById("yourhand").value.replace(/\s+/g, '');
+		if (text.length < 4) {
+			return fail();
+		}
+		if (!cards.includes(text[0])) {
+			return fail();
+		}
+		if (!suits.includes(text[1])) {
+			return fail();
+		}
+		var nextIndex = 2;
+		if (text[nextIndex] == ',') {
+			nextIndex += 1;
+		}
+		if (!cards.includes(text[nextIndex])) {
+			return fail();
+		}
+		if (!suits.includes(text[nextIndex + 1])) {
+			return fail();
+		}
+		ourHand = new PocketHand(new Card(text.substring(0, 2)), new Card(text.substring(nextIndex, nextIndex + 2)));
+		document.getElementById("yourhand").style.color = "lightgreen";
+	}
+
+	function trackFlop() {
+		let suits = ["h", "s", "d", "c"];
+		function fail() {
+			document.getElementById("flop").style.color = "red";
+			flop = undefined
+		}
+		let text = document.getElementById("flop").value.replace(/\s+/g, '');
+		if (text.length < 6) {
+			return fail();
+		}
+		if (!cards.includes(text[0])) {
+			return fail();
+		}
+		if (!suits.includes(text[1])) {
+			return fail();
+		}
+		var nextIndex = 2;
+		if (text[nextIndex] == ',') {
+			nextIndex += 1;
+		}
+		if (!cards.includes(text[nextIndex])) {
+			return fail();
+		}
+		if (!suits.includes(text[nextIndex + 1])) {
+			return fail();
+		}
+		var nextNextIndex = nextIndex + 2;
+		if (text[nextNextIndex] == ',') {
+			nextNextIndex += 1
+		}
+		if (!cards.includes(text[nextNextIndex])) {
+			return fail();
+		}
+		if (!suits.includes(text[nextNextIndex+ 1])) {
+			return fail();
+		}
+		flop = new Flop(new Card(text.substring(0, 2)), new Card(text.substring(nextIndex, nextIndex + 2)), new Card(text.substring(nextNextIndex, nextNextIndex + 2)));
+		document.getElementById("flop").style.color = "lightgreen";	
+	}
+
+	function trackTurn() {
+		let suits = ["d", "c", "s", "h"];
+		function fail() {
+			document.getElementById("turn").style.color = "red";
+			turn = undefined;
+		}
+		let text = document.getElementById("turn").value.replace(/\s+/g, '');
+		if (text.length < 2) {
+			return fail();
+		}
+		if (!cards.includes(text[0])) {
+			return fail();
+		}
+		if (!suits.includes(text[1])) {
+			return fail();
+		}
+		turn = new Card(text[0] + text[1]);
+		document.getElementById("turn").style.color = "lightgreen";
+	}
+
+	function compute() {
+		var buildingRange = [];
+		for (var i = 0; i < range.length; i++) {
+			if (range[i][1] == 1) {
+				buildingRange.push(new UnknownPocketHand(range[i][0]));
+			}
+		}
+		if (buildingRange.length == 0) {
+			document.getElementById("result").innerHTML = "Please enter your opponents range";
+			return;
+		}
+		if (ourHand != undefined && flop == undefined && turn == undefined) {
+			const worker = new Worker("poker.js");
+			spot = new Spot(ourHand, new Range(buildingRange), undefined, undefined)
+			worker.postMessage(spot);
+			worker.onmessage = function(e) {
+				if (e.data[0]) {
+					document.getElementById("result").innerHTML = "equity: " + e.data[1].toString();
+					document.getElementById("progressBar").value = 0;
+					document.getElementById("progressBar").style.opacity = 0;
+				}
+				else {
+					document.getElementById("result").style.color = "lightgreen";
+					document.getElementById("result").innerHTML = "equity: currently computing " + (Math.round(10000*e.data[1])/100).toString() + "% completed";
+					document.getElementById("progressBar").value = (Math.round(10000*e.data[1])/100).toString();
+					document.getElementById("progressBar").style.opacity = '1';
+				}
+			}
+			return;
+		}
+		if (ourHand != undefined && flop != undefined) {
+			const worker = new Worker("poker.js");
+			spot = new Spot(ourHand, new Range(buildingRange), flop, turn);
+			document.getElementById("result").innerHTML = "equity: currently computing";
+			worker.postMessage(spot);
+			worker.onmessage = function(e) {
+				if (e.data[0]) {
+					document.getElementById("result").style.color = "lightgreen";
+					document.getElementById("result").innerHTML = "equity: " + e.data[1].toString();
+					document.getElementById("progressBar").value = 0;
+					document.getElementById("progressBar").style.opacity = 0;
+				}
+				else {
+					document.getElementById("result").style.color = "lightgreen";
+					document.getElementById("result").innerHTML = "equity: currently computing " + Math.round(10000*e.data[1]/100).toString() + "% completed";
+					document.getElementById("progressBar").value = (Math.round(10000*e.data[1])/100).toString();
+					document.getElementById("progressBar").style.opacity = '1';
+				}
+			}
+			return;
+		}
+		document.getElementById("result").innerHTML = "one or more fields are missing";
+		return;
+	}
+
+	function addCard(c) {
+		var row;
+		var col;
+		var card = c;
+		let cardValues = {"A" : 0, "K" : 1, "Q" : 2, "J" : 3, "T" : 4, "9" : 5, "8" : 6, "7" : 7, "6" : 8, "5" : 9, "4" : 10, "3" : 11, "2" : 12};
+		if (cardValues[c[0]] > cardValues[c[1]]) {
+			card = c[1] + c[0] + c.substring(2, 3);
+		}
+		if (card.substring(2, 3) == "s") {
+			row = cardValues[card[0]];
+			col = cardValues[card[1]];
+		}
+		else if (card.substring(2, 3) == "o") {
+			row = cardValues[card[1]]
+			col = cardValues[card[0]]
+		}
+		else {
+			row = cardValues[card[0]];
+			col = cardValues[card[1]];
+			range[rowSize*col + row] = [range[rowSize*col + row][0], 1];
+		}
+		range[rowSize*row + col] = [range[rowSize*row + col][0], 1];
+	}
+
+	function exportRange() {
+		var rangeString = "";
+		for (var i = 0;i < range.length; i++) {
+			if (range[i][1] == 1) {
+				rangeString += range[i][0] + " ";
+			}
+		}
+		alert("copy the range text: " + rangeString);
+	}
+
+	function loadRange() {
+		let rangeToLoad = prompt("Enter a range to load");
+		parseRangeString(rangeToLoad.trim());
+	}
+	
+	function parseRangeString(s) {
+		for (var i = 0; i < range.length; i += 1 ) {
+			range[i] = [range[i][0], 0];
+		}
+		computePercentage();
+		let cardValues = {"A" : 0, "K" : 1, "Q" : 2, "J" : 3, "T" : 4, "9" : 5, "8" : 6, "7" : 7, "6" : 8, "5" : 9, "4" : 10, "3" : 11, "2" : 12}
+		let removedSpaces = s.replace(/\s/g, '');
+		var pieces = removedSpaces.split(',');
+		if (!s.includes(",")) {
+			pieces = s.split(" ");
+		}
+		for (var i = 0; i < pieces.length; i += 1) {
+			var suitType = "";
+			if (pieces[i].length > 2 && pieces[i][2] == "s") {
+				suitType = "s";
+			}
+			else if (pieces[i].length > 2 && pieces[i][2] == "o") {
+				suitType = "o";
+			}
+			if ((suitType == "" && pieces[i].length < 3) || (suitType != "" && pieces[i].length < 4)) {
+				addCard(pieces[i]);
+				continue;
+			}
+			if (pieces[i].includes("+")) {
+					for (var j = cardValues[pieces[i][1]]; j >= 0; j--) {
+						if (pieces[i][0] == pieces[i][1]) {
+							addCard(cards[j] + cards[j]);
+						}
+						else if (pieces[i][0] != cards[j]) {
+							addCard(pieces[i][0] + cards[j] + suitType);
+						}
+					}
+			}
+			else if (pieces[i].includes("-")) {
+				let twoCards = pieces[i].split("-");
+				let end = 12;
+				let start = cardValues[twoCards[0][0]];
+				if (twoCards[1] != "") {
+					end = cardValues[twoCards[1][1]];
+				}
+				if (twoCards[0][0] == twoCards[0][1]) {
+					for (var j = cardValues[twoCards[0][0]]; j >= end; j--) {
+						addCard(cards[j] + cards[j]);
+					}
+					continue;
+				}
+				else {
+					for (var j = cardValues[twoCards[0][1]]; j >= end; j--) {
+						if (twoCards[0][0] != cards[j]) {
+							addCard(twoCards[0][0] + cards[j] + suitType);
+						}
+					}
+				}
+			}
+		}
+		drawBoard();
+		computePercentage();
+	}
+
+</script>
+</html>

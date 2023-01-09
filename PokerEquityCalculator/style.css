@@ -1,0 +1,231 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+
+canvas {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+}
+
+
+.rangeTitle {
+    text-align: center;
+    margin-top: 4vh;
+    font-family: "Convergence", sans-serif;
+}
+
+body {
+    font-family: "Convergence", sans-serif;
+    height: 100vh;
+    font-size: 1.2rem;
+    margin-left: 10vh;
+    background-color: rgb(32, 56, 99);
+}
+
+.allInputs {
+    padding: 20px;
+    display: flex;
+    flex-direction: row;
+    width: 100vw;
+    justify-content: center;
+    align-items: center;
+}
+
+.range {
+    width: 504;
+    float: left;
+    padding: 20px;
+    color: white;
+    text-align: center;
+}
+
+.inputs {
+    float: left;
+    padding: 20px;
+    margin-top: 15vh;
+}
+
+.form {
+    position: relative;
+    width: 20rem;
+    height: 3rem;
+    margin: 50px;
+}
+
+input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border: 2px solid white;
+    border-radius: .5rem;
+    font-family: inherit;
+    font-size: inherit;
+    caret-color: white;
+    color: red;
+    outline: none;
+    padding: 1.25rem;
+    background: none;
+    text-align: center;
+}
+
+input:hover {
+    border-color: gray;
+}
+
+input:focus {
+    border-color: rgb(0, 175, 260);
+}
+
+.page {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.progress {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#progressBar {
+    margin: 20px;
+    opacity: 0;
+    width: 400px;
+}
+
+
+
+label {
+    position: absolute;
+    left: .3rem;
+    top: 0.8rem;
+    padding: 0 0.5rem;
+    color: white;
+    cursor: text;
+    text-align: center;
+    transition: top 200ms ease-in, 
+                font-size 200ms ease-in;
+    background-color: rgb(32, 56, 99);
+}
+
+
+.form__input:focus ~ .form__label, 
+.form__input:not(:placeholder-shown).form__input:not(:focus) ~.form__label{
+    top: -.5rem;
+    font-size: 0.8rem;
+}
+
+
+
+
+
+
+/* CSS */
+.button-4 {
+  appearance: none;
+  background-color:rgba(230, 230, 230, .05);
+  border: 2px solid rgb(175, 177, 179);
+  border-radius: 6px;
+  box-shadow: rgba(27, 31, 35, 0.04) 0 1px 0, rgba(255, 255, 255, 0.25) 0 1px 0 inset;
+  box-sizing: border-box;
+  color: #24292E;
+  cursor: pointer;
+  display: inline-block;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  list-style: none;
+  padding: 6px 16px;
+  position: relative;
+  transition: background-color 0.2s cubic-bezier(0.3, 0, 0.5, 1);
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  vertical-align: middle;
+  white-space: nowrap;
+  word-wrap: break-word;
+  margin-left: 110px;
+  color: white;
+}
+
+.button-4:hover {
+  background-color: rgba(230, 230, 230, .3);
+  text-decoration: none;
+  transition-duration: 0.1s;
+}
+
+.button-4:disabled {
+  background-color: #FAFBFC;
+  border-color: rgba(27, 31, 35, 0.15);
+  color: #959DA5;
+  cursor: default;
+}
+
+.button-4:active {
+  background-color: rgba(230, 230, 230, .7);
+  box-shadow: rgba(225, 228, 232, 0.2) 0 1px 0 inset;
+  transition: none 0s;
+}
+
+.button-4:focus {
+  outline: 1px transparent;
+}
+
+.button-4:before {
+  display: none;
+}
+
+.button-4:-webkit-details-marker {
+  display: none;
+}
+ 
+#result {
+    text-align: center;
+    color: red;
+    font-weight: 200;
+    font-size: 20px;
+}
+
+#grid {
+    margin-bottom: 4px !important;
+}
+
+#rangePercentage {
+    margin: 4px;
+}
+
+.underCanvas {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.rangeLoadingAndSaving {
+    padding: 5px;
+    border-radius: 10px;
+    margin: 3px;
+    background-color:rgb(32, 56, 99);
+    color: white;
+}
+
+
+#exportRange {
+    transform: translateX(-35px);
+}
+
+#loadRange {
+    transform: translateX(-90px);
+}
