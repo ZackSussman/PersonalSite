@@ -1,4 +1,11 @@
 
+/*LABELS
+Labels provide the time specification for music generation. 
+We can essentially specify a tree where nodes are either the same or different accross moments in time
+*/
+
+
+
 //GLOBALS--------------------------------
 var labelField = {} //global dictionary to map label names to label objects
 var UNIT_PULSE_DURATION = .25; //in seconds
@@ -28,7 +35,8 @@ class Label {
 		return this.containment;
 	}
 
-	
+
+
 }
 
 //make and/or return a label which corresponds to n unit pulses
@@ -48,8 +56,7 @@ function nUnit(n) {
 //durationLabel: the name of a label who's duration should be the duration of this label
 function addSimpleLabel(name, durationLabel) {
 	if (name in labelField) {
-		print("error in addSimpleLabel: label " + name + " already exists!");
-		return;
+		throw new Error("error in addSimpleLabel: label " + name + " already exists!");
 	}
 	labelField[name] = new Label(name, [], labelField[durationLabel].getDuration());
 }
@@ -60,13 +67,12 @@ function addSimpleLabel(name, durationLabel) {
 //the concatenation of the perception of the labels in containment
 function addGroupingLabel(name, containment) {
 	if (name in labelField) {
-		print("error in addGroupingLabel: label " + name + " already exists!");
+		throw new Error("error in addGroupingLabel: label " + name + " already exists!");
 	}
 	var duration = 0;
 	for (contained in containment) {
 		if (!(contained in labelField)) {
-			print("error in addGroupingLabel: label " + contained + " does not yet exist");
-			return;
+			throw new Error("error in addGroupingLabel: label " + contained + " does not yet exist");
 		}
 		duration += labelField[contained].getDuration()
 	}
@@ -80,12 +86,10 @@ function addGroupingLabel(name, containment) {
 //make a label with containment subs where each sub is equally spaced in perceptual time with total duration according to durationLabel
 function addMultiLabel(name, subs, durationLabel) {
 	if (subs.length < 2) {
-		print("error in addMultiLabel: not enough sub labels were given");
-		return;
+		throw new Error("error in addMultiLabel: not enough sub labels were given");
 	}
 	if (!(durationLabel in labelField)) {
-		print("error in addMultiLabel: duration label " + durationLabel + " does not exist!");
-		return;
+		throw new Error("error in addMultiLabel: duration label " + durationLabel + " does not exist!");
 	}
 	let totalDuration = labelField[durationLabel].getDuration();
 	let subDuration = totalDuration / length(subs);
@@ -101,14 +105,12 @@ function addMultiLabel(name, subs, durationLabel) {
 // without creating a grouping label out of it (label name is only one swing of the combined duration)
 function addSimpleLabelWithConcatDuration(name, containmentLabels) {
 	if (containmentLabels.length < 2) {
-		print("error in addSimpleLabelWithConcatDuration: not enough labels");
-		return;
+		throw new Error("error in addSimpleLabelWithConcatDuration: not enough labels");
 	}
 	var duration = 0;
 	for (label in containmentLabels) {
 		if (!(label in labelField)) {
-			print("error in addSimdleLabelWithConcatDuration: label " + label + " does not exist!");
-			return;
+			throw new Error("error in addSimdleLabelWithConcatDuration: label " + label + " does not exist!");
 		}
 		duration += labelField[label].getDuration();
 	}
@@ -119,8 +121,7 @@ function addSimpleLabelWithConcatDuration(name, containmentLabels) {
 //return an array of the time sorted leaves of the label tree rooted at label name
 function getLabelLeaves(name) {
 	if (!(name in labelField)) {
-		print("error in getLabelLeaves: label " + name + " does not exist!");r
-		return;
+		throw new Error("error in getLabelLeaves: label " + name + " does not exist!");
 	}
 	let containment = labelField[name].getContainment();
 	if (containment.length == 0) {
@@ -129,3 +130,21 @@ function getLabelLeaves(name) {
 	return containment.map(getLabelLeaves).flat();
 }
 
+
+/*a musical idea is the changing of some dimension over the structure of a label
+  
+  labels: an array of strings corresponding to the names of labels
+  dimensions: an array of dimension objects all of the same type
+
+  labels describes the points at which we feel change in the dimension type of dimensions in the following way:
+
+  if we feel music from some starting label L, then considering the inorder traversal of L, each time
+  we see a label l, if that label is the leftmost label in labels we have not seen yet, then perceive 
+  a changing of the dimension value as according to the leftmost dimension object in dimensions that we
+  have not experienced yet (if there is a duplicate dimension value perceive it again). If we reach
+  the end of either labels or dimensions before L is exhausted, then forget we have perceived and/or reached
+  those labels/dimensions, starting over the corresponding array(s) by looping back to the beginning. 
+*/
+function addMusicalIdea(labels, dimensions) {
+
+}
