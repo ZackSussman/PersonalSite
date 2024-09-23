@@ -8,7 +8,7 @@ How this works:
   webpack has a main entry point in src/index.js, which includes Monaco and sets it up with the MotorMusic language 
 
 3) 
- The language is first defined in antlr in the antlr folder. From src/antlr, `antlr4 -Dlanguage=TypeScript MotorMusicLexer.g4 MotorMusicParser.g4' to generate 
+ The language is first defined in antlr in the antlr folder. From src/antlr, ` /Users/zacksussman/Library/Python/3.9/bin/antlr4 -Dlanguage=TypeScript MotorMusicParser.g4 MotorMusicLexer.g4 -o generated' to generate 
  typescript files for the lexer and parser in src/antlr/generated
 
 4) 
@@ -18,3 +18,7 @@ How this works:
   of the generated parser code from antlr. 
 
 5) Now you are ready for step 1)
+
+
+
+OR JUST RUN THE MAKEFILE!!

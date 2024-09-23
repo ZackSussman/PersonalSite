@@ -2,7 +2,7 @@
 import {CharStream, Token} from "antlr4"
 import MotorMusicLexer from "../../antlr/generated/MotorMusicLexer"
 
-function createLexer(input: String) {
+export function createLexer(input: String) {
     const chars = new CharStream(input.toString());
     const lexer = new MotorMusicLexer(chars);
     return lexer;
