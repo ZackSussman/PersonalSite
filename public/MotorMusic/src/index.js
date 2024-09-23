@@ -60,3 +60,22 @@ let editor = monaco.editor.create(document.getElementById('container'), {
     language: 'MotorMusic',
     theme: 'MotorMusicTheme'
 });
+
+
+import {validate} from '../src/main/generated-javascript/main/typescript/AccessParser.js'
+editor.onDidChangeModelContent( _ => {
+   let errors = validate(editor.getModel().getValue());
+   monaco.editor.setModelMarkers(editor.getModel(), 'owner',
+      errors.map((error) => 
+      (
+         {
+            message: error.message,
+            severity: monaco.MarkerSeverity.Error,
+            startLineNumber: error.startLine,
+            startColumn: error.startCol,
+            endLineNumber: error.endLine,
+            endColumn: error.endCol,
+         })
+      ),
+   );
+});

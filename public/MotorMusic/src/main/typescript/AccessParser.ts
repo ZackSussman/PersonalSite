@@ -2,13 +2,13 @@
 import {CharStream, Token} from "antlr4"
 import MotorMusicLexer from "../../antlr/generated/MotorMusicLexer"
 
-export function createLexer(input: String) {
-    const chars = new CharStream(input.toString());
+export function createLexer(input: string) {
+    const chars = new CharStream(input);
     const lexer = new MotorMusicLexer(chars);
     return lexer;
 }
 
-export function lex(input: String) : Token[] {
+export function lex(input: string) : Token[] {
     return createLexer(input).getAllTokens()
 }
 
@@ -77,7 +77,7 @@ export class CollectorErrorListener extends ErrorListener<Token> {
     }
 }
 
-export function validate(input : String) : Error[] {
+export function validate(input : string) : Error[] {
     let errors : Error[] = []
     const lexer = createLexer(input);
     lexer.removeErrorListeners();
