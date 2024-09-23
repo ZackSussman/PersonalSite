@@ -44,7 +44,9 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'f.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
       {token: 'fs.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
       {token: 'g.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'gs.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'}
+      {token: 'gs.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
+      {token: 'unrecognized.MotorMusic', foreground: 'FF0000'}
+
     ]
 });
 

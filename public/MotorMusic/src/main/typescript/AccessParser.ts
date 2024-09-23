@@ -46,3 +46,45 @@ export function parseTreeStr(input) {
     const tree = parser.compilationUnit();
     return tree.toStringTree(parser.ruleNames, parser);
 }
+
+export class Error {
+    startLine: number;
+    endLine: number;
+    startCol: number;
+    endCol: number;
+    message: string;
+    constructor(startLine: number, endLine: number, startCol: number, endCol: number, message: string) {
+        this.startLine = startLine;
+        this.endLine = endLine;
+        this.startCol = startCol;
+        this.endCol = endCol;
+        this.message = message;
+    }
+}
+
+export class CollectorErrorListener extends ErrorListener<Token> {
+    private errors : Error[] = []
+    constructor(errors: Error[]) {
+        super()
+        this.errors = errors
+    }
+    syntaxError(recognizer, offendingSymbol, line, column, msg, e) {
+        var endColumn = column + 1;
+        if (offendingSymbol._text !== null) {
+            endColumn = column + offendingSymbol._text.length;
+        }
+        this.errors.push(new Error(line, line, column, endColumn, msg));
+    }
+}
+
+export function validate(input : String) : Error[] {
+    let errors : Error[] = []
+    const lexer = createLexer(input);
+    lexer.removeErrorListeners();
+    lexer.addErrorListener(new ConsoleErrorListener());
+    const parser = createParserFromLexer(lexer);
+    parser.removeErrorListeners();
+    parser.addErrorListener(new CollectorErrorListener(errors));
+    const tree = parser.compilationUnit();
+    return errors;
+}
