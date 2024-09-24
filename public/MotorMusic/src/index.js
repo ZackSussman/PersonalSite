@@ -62,7 +62,7 @@ let editor = monaco.editor.create(document.getElementById('container'), {
 });
 
 
-import {validate} from '../src/main/generated-javascript/main/typescript/AccessParser.js'
+import {validate} from '../src/main/generated-javascript/main/typescript/Validate.js'
 editor.onDidChangeModelContent( _ => {
    let errors = validate(editor.getModel().getValue());
    monaco.editor.setModelMarkers(editor.getModel(), 'owner',

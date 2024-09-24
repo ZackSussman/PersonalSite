@@ -13,7 +13,7 @@ export function lex(input: string) : Token[] {
 }
 
 
-import {CommonTokenStream, Parser, ErrorListener, DefaultErrorStrategy} from 'antlr4'
+import {CommonTokenStream, ErrorListener} from 'antlr4'
 import MotorMusicParser from "../../antlr/generated/MotorMusicParser"
 
 class ConsoleErrorListener extends ErrorListener<Token> {
@@ -22,19 +22,12 @@ class ConsoleErrorListener extends ErrorListener<Token> {
     }
 }
 
-function createParser(input) {
-    const lexer = createLexer(input);
-    return createParserFromLexer(lexer);
-}
+
 function createParserFromLexer(lexer) {
     const tokens = new CommonTokenStream(lexer);
     return new MotorMusicParser(tokens);
 }
 
-function parseTree(input) {
-    const parser = createParser(input);
-    return parser.compilationUnit();
-}
 
 export function parseTreeStr(input) {
     const lexer = createLexer(input);
@@ -77,6 +70,9 @@ export class CollectorErrorListener extends ErrorListener<Token> {
     }
 }
 
+import {ExpContext} from "../../antlr/generated/MotorMusicParser";
+import {ParseTreeWalker} from "antlr4";
+import {MotorMusicParserStaticAnalysisListener} from "./Statics";
 export function validate(input : string) : Error[] {
     let errors : Error[] = []
     const lexer = createLexer(input);
@@ -86,5 +82,8 @@ export function validate(input : string) : Error[] {
     parser.removeErrorListeners();
     parser.addErrorListener(new CollectorErrorListener(errors));
     const tree = parser.compilationUnit();
+    let staticAnalysisListener = new MotorMusicParserStaticAnalysisListener();
+    ParseTreeWalker.DEFAULT.walk(staticAnalysisListener, tree);
+    errors = errors.concat(staticAnalysisListener.errors);
     return errors;
 }
