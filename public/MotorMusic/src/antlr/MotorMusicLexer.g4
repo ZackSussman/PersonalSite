@@ -2,14 +2,16 @@ lexer grammar MotorMusicLexer;
 
 channels { WS_CHANNEL }
 
+
+
+WS: ('\r\n'+ | '\r'+ | '\n'+ | [ \t]+) -> channel(WS_CHANNEL);
+
 VOICE : ["].*?["];
 
-WS: [ t]+ -> channel(WS_CHANNEL);
-NL: ('rn' | 'r' | 'n') -> channel(WS_CHANNEL);
 
 NUMBER : ('0'|[1-9][0-9]*)('.'[0-9]+)?;
 
-IDENT : [a-z]+;
+IDENT : [a-z /']+;
 
 LCURLY : '{';
 RCURLY : '}';

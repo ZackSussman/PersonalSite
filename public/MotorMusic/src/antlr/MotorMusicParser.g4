@@ -3,8 +3,7 @@ parser grammar MotorMusicParser;
 options {tokenVocab = MotorMusicLexer;}
 
 compilationUnit:
-    e = exp 
-    EOF #Main
+     e = exp EOF #Main
 ;
 
 note:

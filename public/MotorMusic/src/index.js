@@ -14,15 +14,16 @@ monaco.editor.defineTheme('MotorMusicTheme', {
     base: 'vs',
     inherit: false,
     colors: {
+      foreground: '523852'
     },
     rules: [
       { token: 'plus.MotorMusic', foreground: '000000' }, 
       { token: 'comma.MotorMusic', foreground: '000000'},
       { token: 'lsqbracket.MotorMusic', foreground: '1ca182'},
       {token: 'rsqbracket.MotorMusic', foreground: '1ca182'},
-      {token: 'lparen.MotorMusic', foreground: 'f05771', fontStyle: 'bold'},
-      {token: 'rparen.MotorMusic', foreground: 'f05771', fontStyle: 'bold'},
-      {token: 'mid.MotorMusic', foreground: 'f05771', fontStyle: 'bold'},
+      {token: 'lparen.MotorMusic', foreground: 'fe00ff', fontStyle: 'bold'},
+      {token: 'rparen.MotorMusic', foreground: 'fe00ff', fontStyle: 'bold'},
+      {token: 'mid.MotorMusic', foreground: 'fe00ff', fontStyle: 'bold'},
       {token: 'lcurly.MotorMusic', foreground: '0f37ad'},
       {token: 'rcurly.MotorMusic', foreground: '0f37ad'},
       {token: 'number.MotorMusic', foreground: '000000'},
