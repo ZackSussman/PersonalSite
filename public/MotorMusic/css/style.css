@@ -1,7 +1,7 @@
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
-    background-color: #f5f5f5;
+    background-color: #0c0c0c;
 }
 
 h1 {
@@ -9,11 +9,12 @@ h1 {
 }
 
 #container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 800px;
-    height: 600px;
-    border: 1px solid #ccc;
-    background-color: #3e3b3b; /* Background color of the editor */
+    height: 800px;
+    width: 950px;
+    border: 1px solid #4f4f4f;
 }
+
+.monaco-editor .cursor {
+    border-radius: 6px;  /* Adjust the radius to your preference */
+}
+

@@ -9,28 +9,44 @@ if (typeof window === 'undefined') {
 
 
 
+
+
 monaco.languages.setTokensProvider('MotorMusic', new MotorMusicTokensProvider.MotorMusicTokensProvider());
+
+
+
 monaco.editor.defineTheme('MotorMusicTheme', {
     base: 'vs',
     inherit: false,
     colors: {
-      foreground: '523852'
+      "editor.background": '#171617',
+      "editor.lineHighlightBorder": '#424242',
+      "editorLineNumber.foreground": "#00ffe0",
+      "editorLineNumber.activeForeground":  '#0bf098',
+      "editorCursor.foreground": "#c933ffa6",
+      "editor.selectionBackground": "#547a7a5c",
+      "editor.lineHighlightBackground": "#333333", 
+      "editor.lineHighlightBorder": "#00000000",
+      "editorBracketHighlight.foreground1" : "#1ca182",
+      "editorBracketHighlight.foreground2" : "#6b90ff",
+      "editorBracketHighlight.foreground3" : "#fe00ff",
+      "editorBracketHighlight.unexpectedBracket.foreground": "#ff0000"
     },
     rules: [
-      { token: 'plus.MotorMusic', foreground: '000000' }, 
-      { token: 'comma.MotorMusic', foreground: '000000'},
-      { token: 'lsqbracket.MotorMusic', foreground: '1ca182'},
-      {token: 'rsqbracket.MotorMusic', foreground: '1ca182'},
+      { token: 'plus.MotorMusic', foreground: '#0075ff' }, 
+      { token: 'comma.MotorMusic', foreground: '#0075ff'},
+      //{ token: 'lsqbracket.MotorMusic', foreground: '1ca182'},
+      //{token: 'rsqbracket.MotorMusic', foreground: '1ca182'},
       {token: 'lparen.MotorMusic', foreground: 'fe00ff', fontStyle: 'bold'},
       {token: 'rparen.MotorMusic', foreground: 'fe00ff', fontStyle: 'bold'},
       {token: 'mid.MotorMusic', foreground: 'fe00ff', fontStyle: 'bold'},
-      {token: 'lcurly.MotorMusic', foreground: '0f37ad'},
-      {token: 'rcurly.MotorMusic', foreground: '0f37ad'},
-      {token: 'number.MotorMusic', foreground: '000000'},
-      {token: 'ident.MotorMusic', foreground: '0000FF'},
+      //{token: 'lcurly.MotorMusic', foreground: '6b90ff'},
+      //{token: 'rcurly.MotorMusic', foreground: '6b90ff'},
+      {token: 'number.MotorMusic', foreground: '#0075ff'},
+      {token: 'ident.MotorMusic', foreground: '#0075ff'},
       {token: 'quote.MotorMusic', foreground: '07e38f', fontStyle: 'italic'},
       {token: 'voice.MotorMusic', foreground: '19bd7e', fontStyle: 'italic'},
-      {token: 'exclamation.MotorMusic', foreground: 'A31515', fontStyle: 'bold'},
+      {token: 'exclamation.MotorMusic', foreground: 'ebbdff', fontStyle: 'bold'},
       {token: 'langle.MotorMusic', foreground: 'DE1CCB'},
       {token: 'rangle.MotorMusic', foreground: 'DE1CCB'},
       {token: 'underscore.MotorMusic', foreground: '274e63'},
@@ -59,7 +75,36 @@ let editor = monaco.editor.create(document.getElementById('container'), {
             '}'
     ].join('\n'),
     language: 'MotorMusic',
-    theme: 'MotorMusicTheme'
+    theme: 'MotorMusicTheme',
+    overviewRulerLanes: 0,
+    automaticLayout: true,
+    minimap: {
+      enabled: false
+    },
+    matchBrackets: "near",
+    bracketPairColorization: {
+      enabled: true
+  }
+});
+
+monaco.languages.setLanguageConfiguration('MotorMusic', {
+   brackets: [
+       ['{', '}'],
+       ['[', ']'],
+       ['<', '>']
+   ],
+   autoClosingPairs: [
+       { open: '{', close: '}' },
+       { open: '[', close: ']' },
+       { open: '(', close: '| )' },
+       {open: '<', close: '>'}
+   ],
+   surroundingPairs: [
+       { open: '{', close: '}' },
+       { open: '[', close: ']' },
+       { open: '(', close: ')' },
+       {open : '<', close: '>'}
+   ]
 });
 
 
