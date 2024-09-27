@@ -97,14 +97,12 @@ monaco.editor.defineTheme('MotorMusicTheme', {
 let editor = monaco.editor.create(document.getElementById('container'), {
     value: [
       '[C!](',
-         '["predrop here"]',
-         '{{[1]["impact"]dmmmm, ["dream chord"][<Bb, Eb, G>]{[1]({[0.25]di, _} | [0.5]dum), _}, [1]["vocal"]switch},',
-           '[1 + 1]["vocal"]{[0.25]iss, [0.25]the, [0.25]kind, [0.25]a, [0.25]beat, [0.25]dat, [0.25]goe},',
-       '["dream chord"]["vocal"][<Bb, Eb, G>]{[1]({[0.25][di]ta, _} | [0.5][dum]ta), _}',
-           '}',
-         '|',
-     
-         '"drop here"',
+         '\t["predrop here"]',
+            '\t\t{[1]["impact"]dmmmm, ["dream chord"][<Bb, Eb, G>][1]([0.25]di, _ | [0.5]dum), _ | [1]["vocal"]switch},',
+             '\t\t[1 + 1]["vocal"]{[0.25]iss, [0.25]the, [0.25]kind, [0.25]a, [0.25]beat, [0.25]dat, [0.25]goe},',
+             '\t\t["dream chord"]["vocal"][<Bb, Eb, G>][1]([0.25][di]ta, _ | [0.5][dum]ta), _',
+    '|',
+         '\t"drop here"',
      ')'
     ].join('\n'),
     language: 'MotorMusic',
