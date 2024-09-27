@@ -34,14 +34,42 @@ monaco.editor.defineTheme('MotorMusicTheme', {
     },
     rules: [
       { token: 'plus.MotorMusic', foreground: '#0075ff' }, 
-      { token: 'comma.MotorMusic', foreground: '#0075ff'},
-      //{ token: 'lsqbracket.MotorMusic', foreground: '1ca182'},
-      //{token: 'rsqbracket.MotorMusic', foreground: '1ca182'},
-      {token: 'lparen.MotorMusic', foreground: 'fe00ff', fontStyle: 'bold'},
-      {token: 'rparen.MotorMusic', foreground: 'fe00ff', fontStyle: 'bold'},
-      {token: 'mid.MotorMusic', foreground: 'fe00ff', fontStyle: 'bold'},
-      //{token: 'lcurly.MotorMusic', foreground: '6b90ff'},
-      //{token: 'rcurly.MotorMusic', foreground: '6b90ff'},
+      { token: 'lsqbracket2.MotorMusic', foreground: '#1ca182'},
+      {token: 'rsqbracket2.MotorMusic', foreground: '#1ca182'},
+      { token: 'lsqbracket0.MotorMusic', foreground: '#6b90ff'},
+      {token: 'rsqbracket0.MotorMusic', foreground: '#6b90ff'},
+      { token: 'lsqbracket1.MotorMusic', foreground: '#fe00ff'},
+      {token: 'rsqbracket1.MotorMusic', foreground: '#fe00ff'},
+      {token: 'lparen1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
+      {token: 'rparen1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
+      {token: 'lparen2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
+      {token: 'rparen2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
+      {token: 'lparen0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
+      {token: 'rparen0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
+      {token: 'mid0.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
+      {token: 'mid1.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
+      {token: 'mid2.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
+      {token: 'midp1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
+      {token: 'midp2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
+      {token: 'midp0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
+      {token: 'comma0.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
+      {token: 'comma1.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
+      {token: 'comma2.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
+      {token: 'commap1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
+      {token: 'commap2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
+      {token: 'commap0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
+      {token: 'underscore0.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
+      {token: 'underscore1.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
+      {token: 'underscore2.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
+      {token: 'underscorep1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
+      {token: 'underscorep2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
+      {token: 'underscorep0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
+      {token: 'lcurly0.MotorMusic', foreground: '#1ca182'},
+      {token: 'lcurly1.MotorMusic', foreground: '#6b90ff'},
+      {token: 'lcurly2.MotorMusic', foreground: '#fe00ff'},
+      {token: 'rcurly0.MotorMusic', foreground: '#1ca182'},
+      {token: 'rcurly1.MotorMusic', foreground: '6b90ff'},
+      {token: 'rcurly2.MotorMusic', foreground: '#fe00ff'},
       {token: 'number.MotorMusic', foreground: '#0075ff'},
       {token: 'ident.MotorMusic', foreground: '#0075ff'},
       {token: 'quote.MotorMusic', foreground: '07e38f', fontStyle: 'italic'},
@@ -49,7 +77,6 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'exclamation.MotorMusic', foreground: 'ebbdff', fontStyle: 'bold'},
       {token: 'langle.MotorMusic', foreground: 'DE1CCB'},
       {token: 'rangle.MotorMusic', foreground: 'DE1CCB'},
-      {token: 'underscore.MotorMusic', foreground: '274e63'},
       {token: 'a.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
       {token: 'as.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
       {token: 'b.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
@@ -69,10 +96,16 @@ monaco.editor.defineTheme('MotorMusicTheme', {
 
 let editor = monaco.editor.create(document.getElementById('container'), {
     value: [
-    '[E!][<A#, B, C>]["all day"]{',
-            '{[21]bro, ["haya"]tooo},',
-            '{(a | b), ["weirdness"]}',
-            '}'
+      '[C!](',
+         '["predrop here"]',
+         '{{[1]["impact"]dmmmm, ["dream chord"][<Bb, Eb, G>]{[1]({[0.25]di, _} | [0.5]dum), _}, [1]["vocal"]switch},',
+           '[1 + 1]["vocal"]{[0.25]iss, [0.25]the, [0.25]kind, [0.25]a, [0.25]beat, [0.25]dat, [0.25]goe},',
+       '["dream chord"]["vocal"][<Bb, Eb, G>]{[1]({[0.25][di]ta, _} | [0.5][dum]ta), _}',
+           '}',
+         '|',
+     
+         '"drop here"',
+     ')'
     ].join('\n'),
     language: 'MotorMusic',
     theme: 'MotorMusicTheme',
@@ -83,16 +116,16 @@ let editor = monaco.editor.create(document.getElementById('container'), {
     },
     matchBrackets: "near",
     bracketPairColorization: {
-      enabled: true
-  }
+      enabled: false
+    }
 });
 
 monaco.languages.setLanguageConfiguration('MotorMusic', {
-   brackets: [
+ /*  brackets: [
        ['{', '}'],
        ['[', ']'],
-       ['<', '>']
-   ],
+       ['(', ')']
+   ],*/
    autoClosingPairs: [
        { open: '{', close: '}' },
        { open: '[', close: ']' },

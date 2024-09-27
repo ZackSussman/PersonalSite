@@ -44,6 +44,7 @@ exp:
   | tonic = note EXCLAMATION #Tonic
   | LANGLE notes = note_list RANGLE #Harmony
   | LSQBRACKET action = exp RSQBRACKET target = exp #App
-  | LPAREN towards = exp MID awayFrom = exp RPAREN #Resolve
+  | LPAREN towards = exp_list MID awayFrom = exp_list RPAREN #Resolve
   | LCURLY concat = exp_list RCURLY #Concat
+  | LCURLY awayFrom = exp_list MID towards = exp_list RCURLY #SpecConcat
 ;
