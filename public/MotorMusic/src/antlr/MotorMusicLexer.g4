@@ -11,9 +11,9 @@ VOICE : ["].*?["];
 
 NUMBER : ('0'|[1-9][0-9]*)('.'[0-9]+)?;
 
-IDENT : [a-z /']+;
+IDENT : [a-z/']+;
 
-
+SEMICOLON : ';';
 
 LCURLY : '{';
 RCURLY : '}';
@@ -23,7 +23,6 @@ LANGLE : '<';
 RANGLE : '>';
 LSQBRACKET : '[';
 RSQBRACKET : ']';
-COMMA : ',';
 EXCLAMATION : '!';
 MID : '|';
 UNDERSCORE : '_';

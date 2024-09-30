@@ -72,11 +72,10 @@ class MotorMusicLineTokens implements ILineTokens {
 
 
 
-const CONTEXT_SENSITIVE_TOKENS = [',', '|', '_'];
+const CONTEXT_SENSITIVE_TOKENS = ['|', '_'];
 
 
 export function tokensForLine(input: string, state : MotorMusicState): monaco.languages.ILineTokens {
-    console.log("state is: " + state.toString());
     let errorStartingPoints: number[] = [];
 
     class ErrorCollectorListener extends ErrorListener<Token> {
@@ -113,7 +112,6 @@ export function tokensForLine(input: string, state : MotorMusicState): monaco.la
         } else {
             var tokenTypeName;
             if (CONTEXT_SENSITIVE_TOKENS.includes(token.text) && state.bracketContextFrames.length > 0) {
-                console.log(state.bracketContextFrames.at(-1));
                 //parenthesis case
                 if (state.bracketContextFrames.at(-1)) {
                     tokenTypeName = lexer.symbolicNames[token.type] + "p" +  (state.parenthesisDepth % 3).toString();

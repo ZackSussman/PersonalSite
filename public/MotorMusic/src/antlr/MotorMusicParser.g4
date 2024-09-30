@@ -3,7 +3,8 @@ parser grammar MotorMusicParser;
 options {tokenVocab = MotorMusicLexer;}
 
 compilationUnit:
-     e = exp EOF #Main
+     e = EOF #EmptyProgram
+    | e = exp SEMICOLON rest = compilationUnit #ProgramCons
 ;
 
 note:
@@ -28,12 +29,12 @@ number_list:
 
 exp_list:
       top = exp #SingleExp
-    | top = exp COMMA rest = exp_list #MultiExp
+    | top = exp rest = exp_list #MultiExp
 ;
 
 note_list:
     top = note #SingleNote
-  | top = note COMMA rest = note_list #MultiNote
+  | top = note rest = note_list #MultiNote
 ;
   
 exp:
