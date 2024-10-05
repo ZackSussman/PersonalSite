@@ -4,7 +4,7 @@ options {tokenVocab = MotorMusicLexer;}
 
 compilationUnit:
      e = EOF #EmptyProgram
-    | e = exp SEMICOLON rest = compilationUnit #ProgramCons
+    | e = music SEMICOLON rest = compilationUnit #ProgramCons
 ;
 
 note:
@@ -27,25 +27,49 @@ number_list:
   | top = NUMBER PLUS rest = number_list #MultiNumber
 ;
 
-exp_list:
-      top = exp #SingleExp
-    | top = exp rest = exp_list #MultiExp
+meter:
+    beat = number_list #MeterBeat
+  | LCURLY concat = meter_list RCURLY #MeterConcat
+  | LCURLY away_from = meter_list MID towards = meter_list RCURLY #SpecMeterConcat
+  | LPAREN towards = meter_list MID away_from = meter_list RCURLY #MeterResolve
+;
+
+meter_list:
+    top = meter #SingleMeter
+  | top = meter rest = meter_list #MultiMeter
+;
+
+music_list:
+      top = music #SingleMusic
+    | top = music rest = music_list #MultiMusic
+;
+
+bracketed_music_list:
+      LCURLY top = music RCURLY #SingleBracketedMusic
+    | LCURLY top = music RCURLY rest = bracketed_music_list #MultiBracketedMusic
 ;
 
 note_list:
     top = note #SingleNote
   | top = note rest = note_list #MultiNote
 ;
-  
-exp:
+
+
+music:
     UNDERSCORE #Repeat
   | ident = IDENT #Ident
   | beat = number_list #Beat
   | voice = VOICE #Voice
   | tonic = note EXCLAMATION #Tonic
   | LANGLE notes = note_list RANGLE #Harmony
-  | LSQBRACKET action = exp RSQBRACKET target = exp #App
-  | LPAREN towards = exp_list MID awayFrom = exp_list RPAREN #Resolve
-  | LCURLY concat = exp_list RCURLY #Concat
-  | LCURLY awayFrom = exp_list MID towards = exp_list RCURLY #SpecConcat
+  | note_value = note #SingletonNote
+  | LPAREN towards = music_list MID awayFrom = music_list RPAREN #Resolve
+  | LCURLY concat = music_list RCURLY #Concat
+  | LCURLY awayFrom = music_list MID towards = music_list RCURLY #SpecConcat
+  | DOT #StartOfMeter
+  | LSQBRACKET meter_value = meter RSQBRACKET musics = bracketed_music_list #MeterTag
+  | voice = VOICE LSQBRACKET music_value = music RSQBRACKET #VoiceTag
+  | LSQBRACKET time = NUMBER RSQBRACKET music_value = music #TimeTag
+  | LANGLE tonic = note EXCLAMATION RANGLE music_value = music #TonicTag
+  | LANGLE notes = note_list RANGLE music_value = music #PitchTag
 ;

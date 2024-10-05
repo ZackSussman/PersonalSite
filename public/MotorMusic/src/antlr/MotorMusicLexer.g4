@@ -15,6 +15,7 @@ IDENT : [a-z/']+;
 
 SEMICOLON : ';';
 
+DOT : '.';
 LCURLY : '{';
 RCURLY : '}';
 LPAREN : '(';

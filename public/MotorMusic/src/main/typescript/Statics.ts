@@ -1,8 +1,8 @@
 
 import {Error} from "./Validate";
 import {ParserRuleContext} from "antlr4";
-import {RepeatContext, Exp_listContext, ConcatContext, MultiExpContext, SingleExpContext,
-		AppContext, VoiceContext, TonicContext
+import {RepeatContext, Music_listContext, ConcatContext, MultiMusicContext, SingleMusicContext,
+	 VoiceContext, TonicContext
 } from "../../antlr/generated/MotorMusicParser";
 import MotorMusicParserListener from "../../antlr/generated/MotorMusicParserListener";
 
@@ -33,21 +33,21 @@ export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserList
 
 	enterRepeat = (ctx : RepeatContext)  => {
 		//repeat is an error if it is not part of a concat list 
-		if (!(ctx.parentCtx instanceof Exp_listContext)) {
+		if (!(ctx.parentCtx instanceof Music_listContext)) {
 			this.addError("Underscore repeat can only be used in a concat list.", ctx);
 		}
 	}
 
 	enterConcat = (ctx : ConcatContext) => {
-		let exp_list : Exp_listContext = ctx._concat;
-		if (exp_list instanceof MultiExpContext) {
-			let first_element = (exp_list as MultiExpContext)._top;
+		let exp_list : Music_listContext = ctx._concat;
+		if (exp_list instanceof MultiMusicContext) {
+			let first_element = (exp_list as MultiMusicContext)._top;
 			if (first_element instanceof RepeatContext) {
 				this.addError("Underscore repeat requires a presceding expression to repeat.", first_element);
 			}
 		}
 		else {
-			let first_element = (exp_list as SingleExpContext)._top;
+			let first_element = (exp_list as SingleMusicContext)._top;
 			if (first_element instanceof RepeatContext) {
 				this.addError("Underscore repeat requires a presceding expression to repeat.", first_element);
 			}
@@ -68,6 +68,7 @@ export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserList
 		}
 	}
 
+	/*
 	enterApp = (ctx : AppContext) => {
 		if (ctx._action instanceof VoiceContext) {
 			let voiceContext = ctx._action as VoiceContext;
@@ -96,6 +97,7 @@ export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserList
 			this.currentTonicInScope = undefined;
 		}
 	}
+	*/
 	
 
 	

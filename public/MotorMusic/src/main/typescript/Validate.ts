@@ -70,7 +70,7 @@ export class CollectorErrorListener extends ErrorListener<Token> {
     }
 }
 
-import {ExpContext} from "../../antlr/generated/MotorMusicParser";
+import {MusicContext} from "../../antlr/generated/MotorMusicParser";
 import {ParseTreeWalker} from "antlr4";
 import {MotorMusicParserStaticAnalysisListener} from "./Statics";
 export function validate(input : string) : Error[] {

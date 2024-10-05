@@ -90,7 +90,8 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'g.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
       {token: 'gs.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
       {token: 'unrecognized.MotorMusic', foreground: 'FF0000'},
-      {token: 'semicolon.MotorMusic', foreground: '#0bf098'}
+      {token: 'semicolon.MotorMusic', foreground: '#0bf098'},
+      {token: 'dot.MotorMusic', foreground: 'ebbdff', fontStyle: 'bold'}
 
     ]
 });
