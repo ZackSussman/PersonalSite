@@ -14,7 +14,7 @@ export function lex(input: string) : Token[] {
 
 
 import {CommonTokenStream, ErrorListener} from 'antlr4'
-import MotorMusicParser from "../../antlr/generated/MotorMusicParser"
+import MotorMusicParserPhase1 from "../../antlr/generated/MotorMusicParserPhase1"
 
 class ConsoleErrorListener extends ErrorListener<Token> {
     syntaxError(recognizer, offendingSymbol, line, column, msg, e) {
@@ -25,7 +25,7 @@ class ConsoleErrorListener extends ErrorListener<Token> {
 
 function createParserFromLexer(lexer) {
     const tokens = new CommonTokenStream(lexer);
-    return new MotorMusicParser(tokens);
+    return new MotorMusicParserPhase1(tokens);
 }
 
 
@@ -70,7 +70,7 @@ export class CollectorErrorListener extends ErrorListener<Token> {
     }
 }
 
-import {MusicContext} from "../../antlr/generated/MotorMusicParser";
+import {MusicContext} from "../../antlr/generated/MotorMusicParserPhase1";
 import {ParseTreeWalker} from "antlr4";
 import {MotorMusicParserStaticAnalysisListener} from "./Statics";
 export function validate(input : string) : Error[] {

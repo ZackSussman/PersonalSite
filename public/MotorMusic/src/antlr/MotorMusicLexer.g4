@@ -8,7 +8,6 @@ WS: ('\r\n'+ | '\r'+ | '\n'+ | [ \t]+) -> channel(WS_CHANNEL);
 
 VOICE : ["].*?["];
 
-
 NUMBER : ('0'|[1-9][0-9]*)('.'[0-9]+)?;
 
 IDENT : [a-z/']+;
@@ -41,5 +40,6 @@ F : 'F' | 'E#';
 Gs : 'G#' | 'Ab';
 G : 'G';
 
+VOICECONTENT : '<' .*? '>';
 
 UNRECOGNIZED : . ;

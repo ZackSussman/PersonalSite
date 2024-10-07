@@ -1,10 +1,10 @@
 
 import {Error} from "./Validate";
 import {ParserRuleContext} from "antlr4";
-import {RepeatContext, Music_listContext, ConcatContext, MultiMusicContext, SingleMusicContext,
+import {Music_listContext, ConcatContext, MultiMusicContext, SingleMusicContext,
 	 VoiceContext, TonicContext
-} from "../../antlr/generated/MotorMusicParser";
-import MotorMusicParserListener from "../../antlr/generated/MotorMusicParserListener";
+} from "../../antlr/generated/MotorMusicParserPhase1";
+import MotorMusicParserListener from "../../antlr/generated/MotorMusicParserPhase1Listener";
 
 
 export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserListener {
@@ -31,29 +31,8 @@ export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserList
 		return ctx.start.line.toString() + "." + ctx.start.column.toString() + "-" + ctx.stop.line.toString() + "." + ctx.stop.column.toString();
 	}
 
-	enterRepeat = (ctx : RepeatContext)  => {
-		//repeat is an error if it is not part of a concat list 
-		if (!(ctx.parentCtx instanceof Music_listContext)) {
-			this.addError("Underscore repeat can only be used in a concat list.", ctx);
-		}
-	}
 
-	enterConcat = (ctx : ConcatContext) => {
-		let exp_list : Music_listContext = ctx._concat;
-		if (exp_list instanceof MultiMusicContext) {
-			let first_element = (exp_list as MultiMusicContext)._top;
-			if (first_element instanceof RepeatContext) {
-				this.addError("Underscore repeat requires a presceding expression to repeat.", first_element);
-			}
-		}
-		else {
-			let first_element = (exp_list as SingleMusicContext)._top;
-			if (first_element instanceof RepeatContext) {
-				this.addError("Underscore repeat requires a presceding expression to repeat.", first_element);
-			}
-		}
-	}
-
+	/*
 
 	enterTonic = (ctx : TonicContext) => {
 		if (this.currentTonicInScope != undefined && this.currentTonicInScope != ctx) {
@@ -67,6 +46,7 @@ export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserList
 			this.addError("Declared voice " + (ctx._voice.text) + " was already in scope at this definition.", ctx);
 		}
 	}
+	*/
 
 	/*
 	enterApp = (ctx : AppContext) => {
