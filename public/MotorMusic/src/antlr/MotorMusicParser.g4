@@ -45,8 +45,8 @@ music_list:
 ;
 
 bracketed_music_list:
-      LCURLY top = music RCURLY #SingleBracketedMusic
-    | LCURLY top = music RCURLY rest = bracketed_music_list #MultiBracketedMusic
+    LCURLY value = music_list RCURLY #BracketedMusicList
+  | LCURLY away_from = music_list MID towards = music_list RCURLY #ResolveBracketedMusicList
 ;
 
 note_list:
@@ -54,6 +54,12 @@ note_list:
   | top = note rest = note_list #MultiNote
 ;
 
+pitch_sequence:
+      LANGLE  pitches = note_list RANGLE #UntimedSingle
+    | LSQBRACKET time = NUMBER RSQBRACKET LANGLE pitches = note_list RANGLE #TimedSingle
+    | LANGLE pitches = note_list RANGLE rest = pitch_sequence #UntimedMulti
+    | LSQBRACKET time = NUMBER RSQBRACKET LANGLE pitches = note_list RANGLE rest = pitch_sequence #TimedMulti
+;
 
 music:
     UNDERSCORE #Repeat
@@ -67,9 +73,9 @@ music:
   | LCURLY concat = music_list RCURLY #Concat
   | LCURLY awayFrom = music_list MID towards = music_list RCURLY #SpecConcat
   | DOT #StartOfMeter
-  | LSQBRACKET meter_value = meter RSQBRACKET musics = bracketed_music_list #MeterTag
   | voice = VOICE LSQBRACKET music_value = music RSQBRACKET #VoiceTag
   | LSQBRACKET time = NUMBER RSQBRACKET music_value = music #TimeTag
   | LANGLE tonic = note EXCLAMATION RANGLE music_value = music #TonicTag
-  | LANGLE notes = note_list RANGLE music_value = music #PitchTag
+  | LSQBRACKET notes = pitch_sequence RSQBRACKET music_value = music #PitchTag
+  | LSQBRACKET container = music RSQBRACKET contained = bracketed_music_list #Containment
 ;
