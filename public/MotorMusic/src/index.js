@@ -13,8 +13,6 @@ if (typeof window === 'undefined') {
 
 monaco.languages.setTokensProvider('MotorMusic', new MotorMusicTokensProvider.MotorMusicTokensProvider());
 
-
-
 monaco.editor.defineTheme('MotorMusicTheme', {
     base: 'vs',
     inherit: false,
@@ -98,14 +96,21 @@ monaco.editor.defineTheme('MotorMusicTheme', {
 
 let editor = monaco.editor.create(document.getElementById('container'), {
     value: [
-      '[C!](',
-         '\t["predrop here"]',
-            '\t\t{[1]["impact"]dmmmm ["dream chord"][<Bb Eb G>][1]([0.25]di _ | [0.5]dum) _ | [1]["vocal"]switch}',
-             '\t\t[1 + 1]["vocal"]{[0.25]iss [0.25]the [0.25]kind [0.25]a [0.25]beat [0.25]dat [0.25]goe}',
-             '\t\t["dream chord"]["vocal"][<Bb Eb G>][1]([0.25][di]ta _ | [0.5][dum]ta) _',
-    '|',
-         '\t"drop here"',
-     ')'
+      '[{1 + 1  1 + 1}]{',
+        '\t(',
+          '\t\t[1]"kick"<b>',
+          '\t\t[[1]"hat"<t>]{"bass"<([0.5]doo [0.5]doo >}',
+        '\t|',
+          '\t\t[[1]"snare"<kaaa>]{"bass"< | [1]doo )>}',
+          '\t\t[[1]"hat"<t>]{"bass"<([0.5]{d doo >}',
+        '\t)',
+        '\t(',
+          '\t\t[[1]"kick"<b>]{"bass"<doo doo>}',
+          '\t\t[[1]"hat"<t>]{"bass"<doo doo} >}',
+        '\t|',
+          '\t\t["bass"< | [2]doo )>]{[1]{"snare"<kaa> "hat"<t>}}',
+        '\t)',
+      '};'
     ].join('\n'),
     language: 'MotorMusic',
     theme: 'MotorMusicTheme',

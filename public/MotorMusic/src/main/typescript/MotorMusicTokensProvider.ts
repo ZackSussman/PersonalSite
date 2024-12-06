@@ -1,8 +1,8 @@
 
 /// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
-import {createPhase1Lexer, createPhase2Lexer} from './Validate'
+import {createLexer} from './Validate'
 import {CommonTokenStream, InputStream, Token, ErrorListener} from 'antlr4'
-import MotorMusicLexerPhase1 from "../../antlr/generated/MotorMusicLexerPhase1";
+import MotorMusicLexer from "../../antlr/generated/MotorMusicLexer";
 import ILineTokens = monaco.languages.ILineTokens;
 import IToken = monaco.languages.IToken;
 
@@ -50,7 +50,6 @@ export class MotorMusicState implements monaco.languages.IState {
 
     voiceStates : Map<string, MotorMusicVoiceState>;
     currentVoice : string
-    fromCollumn : number
     clone(): monaco.languages.IState {
         let res = new MotorMusicState();
         res.voiceStates = new Map<string, MotorMusicVoiceState>();
@@ -58,7 +57,6 @@ export class MotorMusicState implements monaco.languages.IState {
             res.voiceStates.set(key, value.clone() as MotorMusicVoiceState);
         }
         res.currentVoice = this.currentVoice;
-        res.fromCollumn = this.fromCollumn;
         return res;
     }
 
@@ -71,8 +69,6 @@ export class MotorMusicState implements monaco.languages.IState {
             }
         }
         if (other.currentVoice != this.currentVoice)
-            return false;
-        if (other.fromCollumn != this.fromCollumn)
             return false;
         return true;
     }
@@ -87,7 +83,6 @@ export class MotorMusicTokensProvider implements monaco.languages.TokensProvider
         initialState.voiceStates = new Map<string, MotorMusicVoiceState>();
         initialState.voiceStates.set(METER_VOICE_TAG, new MotorMusicVoiceState());
         initialState.currentVoice = METER_VOICE_TAG;
-        initialState.fromCollumn = 0;
         return initialState;
     }
 
@@ -127,33 +122,19 @@ const CONTEXT_SENSITIVE_TOKENS = ['|', '_'];
 
 export function tokensForLine(input: string, state : MotorMusicState): monaco.languages.ILineTokens {
     let errorStartingPoints: number[] = [];
-
     class ErrorCollectorListener extends ErrorListener<Token> {
         syntaxError(recognizer, offendingSymbol, line, column, msg, e) {
             errorStartingPoints.push(column)
         }
     }
-
-
- 
-    const phase1Lexer = createPhase1Lexer(input);
-    phase1Lexer.removeErrorListeners();
-    let phase1ErrorListener = new ErrorCollectorListener();
-    phase1Lexer.addErrorListener(phase1ErrorListener);
-    
-    const phase2Lexer = createPhase2Lexer(input);
-    phase2Lexer.removeErrorListeners();
-    let phase2ErrorListener = new ErrorCollectorListener();
-    phase2Lexer.addErrorListener(phase2ErrorListener);
+    const lexer = createLexer(input);
 
     let done = false;
-
     
     let myTokens: monaco.languages.IToken[] = [];
     var prevToken = undefined;
 
-
-    function processToken(token, lexer) {
+    function processToken(token) {
         let voiceState = state.voiceStates.get(state.currentVoice);
          //all opening bracket adjustments done before processing of the current token 
          if (token.text == "{") {
@@ -168,8 +149,11 @@ export function tokensForLine(input: string, state : MotorMusicState): monaco.la
             voiceState.bracketDepth += 1;
         }
  
- 
         if (token == null || token.type == EOF) {
+            return true;
+        }
+        else if (token.type == MotorMusicLexer.RANGLE) {
+            myTokens.push(new MotorMusicToken(lexer.symbolicNames[token.type], token.column));
             return true;
         } else {
             var tokenTypeName;
@@ -205,8 +189,8 @@ export function tokensForLine(input: string, state : MotorMusicState): monaco.la
             if (token.text == ")" && voiceState.parenthesisDepth == -1) {
                 tokenTypeName = "unrecognized";
             }
-            let myToken = new MotorMusicToken(tokenTypeName, token.column + state.fromCollumn);
-            //console.log("we have: " + tokenTypeName);
+            let myToken = new MotorMusicToken(tokenTypeName, token.column);
+          //console.log("we have: " + tokenTypeName);
             myTokens.push(myToken);   
             
         }
@@ -226,46 +210,48 @@ export function tokensForLine(input: string, state : MotorMusicState): monaco.la
                 throw new Error("mismatch frame popping for parenthesis");
             }
         }
-        if (token.text == ">") {
-            state.currentVoice = METER_VOICE_TAG;
-            state.fromCollumn = 0;
-        }
         return false;
     }
 
     do {
     
-        let token = (state.currentVoice == METER_VOICE_TAG ? phase1Lexer : phase2Lexer).nextToken();
+        let token = lexer.nextToken();
         //processing that depends on previous two tokens
-        if (prevToken != undefined && token.type == MotorMusicLexerPhase1.VOICECONTENT) {
-            //voice followed by voice content means we have to parse the voice content from
-            //the context of this voice 
-            if (prevToken.type = MotorMusicLexerPhase1.VOICE) {
-                let phase2Lexer = createPhase2Lexer(token.text);
+        if (prevToken != undefined && (token.type == MotorMusicLexer.LANGLE)) 
+        {
+            if (prevToken.type == MotorMusicLexer.VOICE) {
+                processToken(token); //process initial <
                 let innerTokenizationDone = false;
                 state.currentVoice = prevToken.text;
-                state.fromCollumn = token.column;
+                if (!state.voiceStates.has(prevToken.text)) {
+                    state.voiceStates.set(prevToken.text, new MotorMusicVoiceState());
+                }
+                var innerToken;
                 do {
-                    let innerToken = phase2Lexer.nextToken();
-                    if (!state.voiceStates.has(prevToken.text)) {
-                        state.voiceStates.set(prevToken.text, new MotorMusicVoiceState());
-                    }
-                    innerTokenizationDone = processToken(innerToken, phase2Lexer);
+                    innerToken = lexer.nextToken();
+                    innerTokenizationDone = processToken(innerToken);
                 }
                 while (!innerTokenizationDone)
+                if (innerToken.type == MotorMusicLexer.RANGLE) {
+                    state.currentVoice = METER_VOICE_TAG;
+                }
+            }
+            else {
+                errorStartingPoints.push(prevToken.column);
             }
         }
         else {
-            done = processToken(token, state.currentVoice == METER_VOICE_TAG ? phase1Lexer : phase2Lexer);
+            done = processToken(token);
+            if (token != null && token.type == MotorMusicLexer.RANGLE) {
+                errorStartingPoints.push(token.column);
+            }
+            prevToken = token;
         }
-        prevToken = token;
     } while (!done);
-
     // Add all errors
     for (let e of errorStartingPoints) {
         myTokens.push(new MotorMusicToken("error.MotorMusic", e));
     }
     myTokens.sort((a, b) => (a.startIndex > b.startIndex) ? 1 : -1)
-    console.log(myTokens);
     return new MotorMusicLineTokens(myTokens, state);
 }

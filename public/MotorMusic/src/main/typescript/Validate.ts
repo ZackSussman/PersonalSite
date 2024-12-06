@@ -1,27 +1,21 @@
 /// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
 import {CharStream, Token} from "antlr4"
-import MotorMusicLexerPhase1 from "../../antlr/generated/MotorMusicLexerPhase1"
-import MotorMusicLexerPhase2 from "../../antlr/generated/MotorMusicLexerPhase2"
+import MotorMusicLexer from "../../antlr/generated/MotorMusicLexer"
 
-export function createPhase1Lexer(input: string) {
+export function createLexer(input: string) {
     const chars = new CharStream(input);
-    const lexer = new MotorMusicLexerPhase1(chars);
-    return lexer;
-}
-
-export function createPhase2Lexer(input : string) {
-    const chars = new CharStream(input);
-    const lexer = new MotorMusicLexerPhase2(chars);
+    const lexer = new MotorMusicLexer(chars);
     return lexer;
 }
 
 export function lex(input: string) : Token[] {
-    return createPhase1Lexer(input).getAllTokens()
+    return createLexer(input).getAllTokens()
 }
 
 
 import {CommonTokenStream, ErrorListener} from 'antlr4'
 import MotorMusicParserPhase1 from "../../antlr/generated/MotorMusicParserPhase1"
+import MotorMusicParserPhase2 from "../../antlr/generated/MotorMusicParserPhase2"
 
 class ConsoleErrorListener extends ErrorListener<Token> {
     syntaxError(recognizer, offendingSymbol, line, column, msg, e) {
@@ -36,15 +30,15 @@ function createParserFromLexer(lexer) {
 }
 
 
-export function parseTreeStr(input) {
-    const lexer = createPhase1Lexer(input);
+export function parseTreePhase1(input) {
+    const lexer = createLexer(input);
     lexer.removeErrorListeners();
     lexer.addErrorListener(new ConsoleErrorListener());
     const parser = createParserFromLexer(lexer);
     parser.removeErrorListeners();
     parser.addErrorListener(new ConsoleErrorListener());
     const tree = parser.compilationUnit();
-    return tree.toStringTree(parser.ruleNames, parser);
+    return tree
 }
 
 export class Error {
@@ -77,20 +71,19 @@ export class CollectorErrorListener extends ErrorListener<Token> {
     }
 }
 
-import {MusicContext} from "../../antlr/generated/MotorMusicParserPhase1";
 import {ParseTreeWalker} from "antlr4";
 import {MotorMusicParserStaticAnalysisListener} from "./Statics";
 export function validate(input : string) : Error[] {
     let errors : Error[] = []
-    const lexer = createPhase1Lexer(input);
+    const lexer = createLexer(input);
     lexer.removeErrorListeners();
     lexer.addErrorListener(new ConsoleErrorListener());
     const parser = createParserFromLexer(lexer);
     parser.removeErrorListeners();
     parser.addErrorListener(new CollectorErrorListener(errors));
-    const tree = parser.compilationUnit();
+    const treePhase1 = parser.compilationUnit();
     let staticAnalysisListener = new MotorMusicParserStaticAnalysisListener();
-    ParseTreeWalker.DEFAULT.walk(staticAnalysisListener, tree);
+    ParseTreeWalker.DEFAULT.walk(staticAnalysisListener, treePhase1);
     errors = errors.concat(staticAnalysisListener.errors);
     return errors;
 }

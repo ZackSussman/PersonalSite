@@ -2,7 +2,7 @@
 import {Error} from "./Validate";
 import {ParserRuleContext} from "antlr4";
 import {Music_listContext, ConcatContext, MultiMusicContext, SingleMusicContext,
-	 VoiceContext, TonicContext
+	 VoiceContext
 } from "../../antlr/generated/MotorMusicParserPhase1";
 import MotorMusicParserListener from "../../antlr/generated/MotorMusicParserPhase1Listener";
 
@@ -18,7 +18,7 @@ export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserList
 
 	
 	voicesInScope : VoiceContext[] = []
-	currentTonicInScope? : TonicContext = undefined
+	//currentTonicInScope? : TonicContext = undefined
 
 	private addError(message : string, ctx : ParserRuleContext) {
 		let error = new Error(ctx.start.line, ctx.stop.line, ctx.start.column + 1, ctx.stop.column + 1, message);
