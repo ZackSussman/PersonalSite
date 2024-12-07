@@ -45,18 +45,6 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'midp1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
       {token: 'midp2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
       {token: 'midp0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
-      {token: 'comma0.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
-      {token: 'comma1.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
-      {token: 'comma2.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
-      {token: 'commap1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
-      {token: 'commap2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
-      {token: 'commap0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
-      {token: 'underscore0.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
-      {token: 'underscore1.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
-      {token: 'underscore2.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
-      {token: 'underscorep1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
-      {token: 'underscorep2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
-      {token: 'underscorep0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
       {token: 'lcurly0.MotorMusic', foreground: '#1ca182'},
       {token: 'lcurly1.MotorMusic', foreground: '#6b90ff'},
       {token: 'lcurly2.MotorMusic', foreground: '#fe00ff'},
@@ -65,6 +53,7 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'rcurly2.MotorMusic', foreground: '#fe00ff'},
       {token: 'number.MotorMusic', foreground: '#0075ff'},
       {token: 'ident.MotorMusic', foreground: '#0075ff'},
+      {token: 'underscore.MotorMusic', foreground: '#0075ff'},
       {token: 'unrecognized.MotorMusic', foreground: 'FF0000'}
     ]
 });
@@ -113,14 +102,18 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
 
 //as a function of time, will specify the range of syllables to highlight 
 var syllablesAnimationFunction = undefined;
+var bracketsAnimationFunction = undefined;
+var parensAnimationFunction = undefined;
 
-const syllableTime = 500; //milliseconds
+const syllableTime = 1000; //milliseconds
 
 
 //parse, statics, report errors, construct animation functions
 function consumeText() {
-  let [retreivedSyllablesAnimationFunction, errors] = process(editor.getModel().getValue(), syllableTime);
+  let [retreivedSyllablesAnimationFunction, retreivedBracketsAnimationFunction, retreivedParensAnimationFunction, errors] = process(editor.getModel().getValue(), syllableTime);
   syllablesAnimationFunction = retreivedSyllablesAnimationFunction;
+  bracketsAnimationFunction = retreivedBracketsAnimationFunction;
+  parensAnimationFunction = retreivedParensAnimationFunction;
   monaco.editor.setModelMarkers(editor.getModel(), 'owner',
      errors.map((error) => 
      (
@@ -180,17 +173,42 @@ button.addEventListener('click', () => {
     function updateDecorations() {
       const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
       let rangeValues = syllablesAnimationFunction(elapsedTime);
+      let bracketInfos = bracketsAnimationFunction(elapsedTime).concat(parensAnimationFunction(elapsedTime));
       if (rangeValues != undefined) {
-        const range = new monaco.Range(rangeValues[0], rangeValues[1], rangeValues[2], rangeValues[3]);
+        //we had constructed ranges in our typescript as a 4 tupule, now we can create an actual range from it
+        function fakeRangeToRange(x) {
+          return new monaco.Range(x[0], x[1], x[2], x[3]);
+        }
+        const syllableRange = fakeRangeToRange(rangeValues);
         // Define the decoration options
-        const decorationOptions = [{
-          range: range,
+        const syllableDecorationOptions = [{
+          range: syllableRange,
           options: {
               inlineClassName: 'highlighted',  // CSS class for the decoration
           }
         }];
+
+        var bracketRanges = [];
+        for (let bracketInfo of bracketInfos) {
+          bracketRanges.push(fakeRangeToRange(bracketInfo.openBraceRange));
+          bracketRanges.push(fakeRangeToRange(bracketInfo.closeBraceRange));
+          bracketRanges.push(fakeRangeToRange(bracketInfo.midRange));
+        }
+        let bracketDecorationOptions = [];
+        //ugh I would have written a map but the compiler was angry about smth
+        for (let range of bracketRanges) {
+          bracketDecorationOptions.push({
+            range: range,
+            options: {
+              inlineClassName: 'bracket-highlighted'
+            }
+          });
+        }
+
+
         // Add the decoration to the collection
-        decorationsCollection.set(decorationOptions);
+        decorationsCollection.set(syllableDecorationOptions.concat(bracketDecorationOptions));
+
       }
       else {
         clearInterval(intervalId);

@@ -23,6 +23,11 @@ h1 {
   color: rgb(66, 214, 255) !important
 }
 
+.monaco-editor .bracket-highlighted {
+  color: rgb(222, 222, 222) !important
+}
+
+
 /* Default button style */
 .action-button {
     padding: 10px 20px;

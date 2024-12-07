@@ -72,7 +72,7 @@ class MotorMusicLineTokens implements ILineTokens {
 
 
 
-const CONTEXT_SENSITIVE_TOKENS = ['|', '_'];
+const CONTEXT_SENSITIVE_TOKENS = ['|'];
 
 
 export function tokensForLine(input: string, state : MotorMusicState): monaco.languages.ILineTokens {

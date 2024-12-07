@@ -72,15 +72,20 @@ export class CollectorErrorListener extends ErrorListener<Token> {
 
 
 
+type syllableAnimationFunction = (elapsedTime : number) => [number, number, number, number]
+type bracesAnimationFunction = (elapsedTime : number) => BracesAnimationInfo[]
+
 //process involves two main steps
 //1) lex and parse to validate with static analysis and get parse tree
 //2) traverse parse tree to build animation functions
-//first output is the animation function, second are any errors from static analysis
+//first outputs are the three animation functions, then at the end are any errors from static analysis
 //import {MusicContext, CompilationUnitContext} from "../../antlr/generated/MotorMusicParser";
 import {ParseTreeWalker} from "antlr4";
 import {MotorMusicParserStaticAnalysisListener} from "./Statics";
-import {CreateSyllablesAnimationListener} from "./Animations";
-export function process(input : string, syllableLength : number) : [(elapsedTime : number) => [number, number, number, number], Error[]] {
+import {AnimationListener, BracesAnimationInfo} from "./Animations";
+export function process(input : string, syllableLength : number) : 
+    [syllableAnimationFunction, bracesAnimationFunction, bracesAnimationFunction, Error[]] 
+    {
     let errors : Error[] = []
     const lexer = createLexer(input);
     lexer.removeErrorListeners();
@@ -92,11 +97,17 @@ export function process(input : string, syllableLength : number) : [(elapsedTime
     let staticAnalysisListener = new MotorMusicParserStaticAnalysisListener();
     ParseTreeWalker.DEFAULT.walk(staticAnalysisListener, tree);
     errors = errors.concat(staticAnalysisListener.errors);
-    let createSyllablesAnimationListener = new CreateSyllablesAnimationListener(syllableLength);
-    ParseTreeWalker.DEFAULT.walk(createSyllablesAnimationListener, tree);
-    function res(x : number) {
-        //console.log("is this undefined: " + createSyllablesAnimationListener.syllablesAnimationFunction);
-        return createSyllablesAnimationListener.syllablesAnimationFunction(x);
+    let animationListener = new AnimationListener(syllableLength);
+    ParseTreeWalker.DEFAULT.walk(animationListener, tree);
+    function packageSyllablesAnimationFunction(x : number) {
+        //locally capture createAnimationListener
+        return animationListener.syllablesAnimationFunction(x);
     }
-    return [res, errors];
+    function packageBracesAnimationFunction(x : number) {
+        return animationListener.bracketsAnimationFunction(x);
+    }
+    function packageParensAnimationFunction(x : number) {
+        return animationListener.parensAnimationFunction(x);
+    }
+    return [packageSyllablesAnimationFunction, packageBracesAnimationFunction, packageParensAnimationFunction, errors];
 }
