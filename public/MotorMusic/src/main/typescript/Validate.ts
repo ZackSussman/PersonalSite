@@ -70,10 +70,17 @@ export class CollectorErrorListener extends ErrorListener<Token> {
     }
 }
 
-import {MusicContext} from "../../antlr/generated/MotorMusicParser";
+
+
+//process involves two main steps
+//1) lex and parse to validate with static analysis and get parse tree
+//2) traverse parse tree to build animation functions
+//first output is the animation function, second are any errors from static analysis
+//import {MusicContext, CompilationUnitContext} from "../../antlr/generated/MotorMusicParser";
 import {ParseTreeWalker} from "antlr4";
 import {MotorMusicParserStaticAnalysisListener} from "./Statics";
-export function validate(input : string) : Error[] {
+import {CreateSyllablesAnimationListener} from "./Animations";
+export function process(input : string, syllableLength : number) : [(elapsedTime : number) => [number, number, number, number], Error[]] {
     let errors : Error[] = []
     const lexer = createLexer(input);
     lexer.removeErrorListeners();
@@ -85,5 +92,11 @@ export function validate(input : string) : Error[] {
     let staticAnalysisListener = new MotorMusicParserStaticAnalysisListener();
     ParseTreeWalker.DEFAULT.walk(staticAnalysisListener, tree);
     errors = errors.concat(staticAnalysisListener.errors);
-    return errors;
+    let createSyllablesAnimationListener = new CreateSyllablesAnimationListener(syllableLength);
+    ParseTreeWalker.DEFAULT.walk(createSyllablesAnimationListener, tree);
+    function res(x : number) {
+        //console.log("is this undefined: " + createSyllablesAnimationListener.syllablesAnimationFunction);
+        return createSyllablesAnimationListener.syllablesAnimationFunction(x);
+    }
+    return [res, errors];
 }

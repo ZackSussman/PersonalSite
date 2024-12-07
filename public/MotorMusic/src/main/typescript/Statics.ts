@@ -1,9 +1,7 @@
 
 import {Error} from "./Validate";
 import {ParserRuleContext} from "antlr4";
-import {Music_listContext, ConcatContext} from "../../antlr/generated/MotorMusicParser";
 import MotorMusicParserListener from "../../antlr/generated/MotorMusicParserListener";
-
 
 export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserListener {
 

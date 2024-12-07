@@ -33,13 +33,6 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       "editorBracketHighlight.unexpectedBracket.foreground": "#ff0000"
     },
     rules: [
-      { token: 'plus.MotorMusic', foreground: '#0075ff' }, 
-      { token: 'lsqbracket2.MotorMusic', foreground: '#1ca182'},
-      {token: 'rsqbracket2.MotorMusic', foreground: '#1ca182'},
-      { token: 'lsqbracket0.MotorMusic', foreground: '#6b90ff'},
-      {token: 'rsqbracket0.MotorMusic', foreground: '#6b90ff'},
-      { token: 'lsqbracket1.MotorMusic', foreground: '#fe00ff'},
-      {token: 'rsqbracket1.MotorMusic', foreground: '#fe00ff'},
       {token: 'lparen1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
       {token: 'rparen1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
       {token: 'lparen2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
@@ -72,40 +65,17 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'rcurly2.MotorMusic', foreground: '#fe00ff'},
       {token: 'number.MotorMusic', foreground: '#0075ff'},
       {token: 'ident.MotorMusic', foreground: '#0075ff'},
-      {token: 'quote.MotorMusic', foreground: '07e38f', fontStyle: 'italic'},
-      {token: 'voice.MotorMusic', foreground: '19bd7e', fontStyle: 'italic'},
-      {token: 'exclamation.MotorMusic', foreground: 'ebbdff', fontStyle: 'bold'},
-      {token: 'langle.MotorMusic', foreground: 'DE1CCB'},
-      {token: 'rangle.MotorMusic', foreground: 'DE1CCB'},
-      {token: 'a.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'as.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'b.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'c.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'cs.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'd.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'ds.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'e.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'f.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'fs.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'g.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'gs.MotorMusic', foreground: 'B71CDE', fontStyle: 'bold'},
-      {token: 'unrecognized.MotorMusic', foreground: 'FF0000'},
-      {token: 'semicolon.MotorMusic', foreground: '#0bf098'},
-      {token: 'dot.MotorMusic', foreground: 'ebbdff', fontStyle: 'bold'}
-
+      {token: 'unrecognized.MotorMusic', foreground: 'FF0000'}
     ]
 });
 
 let editor = monaco.editor.create(document.getElementById('container'), {
     value: [
-      '[C!](',
-         '\t["predrop here"]',
-            '\t\t{[1]["impact"]dmmmm ["dream chord"][<Bb Eb G>][1]([0.25]di _ | [0.5]dum) _ | [1]["vocal"]switch}',
-             '\t\t[1 + 1]["vocal"]{[0.25]iss [0.25]the [0.25]kind [0.25]a [0.25]beat [0.25]dat [0.25]goe}',
-             '\t\t["dream chord"]["vocal"][<Bb Eb G>][1]([0.25][di]ta _ | [0.5][dum]ta) _',
-    '|',
-         '\t"drop here"',
-     ')'
+      '{',
+        '\t\t{bwa | ha ha}',
+      '\t|', 
+        '\t\t((ta | ri) | ki)',
+    '}'
     ].join('\n'),
     language: 'MotorMusic',
     theme: 'MotorMusicTheme',
@@ -127,7 +97,7 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
        ['(', ')']
    ],*/
    autoClosingPairs: [
-       { open: '{', close: '}' },
+       { open: '{', close: '| }' },
        { open: '[', close: ']' },
        { open: '(', close: '| )' },
        {open: '<', close: '>'}
@@ -141,20 +111,92 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
 });
 
 
-import {validate} from '../src/main/generated-javascript/main/typescript/Validate.js'
-editor.onDidChangeModelContent( _ => {
-   let errors = validate(editor.getModel().getValue());
-   monaco.editor.setModelMarkers(editor.getModel(), 'owner',
-      errors.map((error) => 
-      (
-         {
-            message: error.message,
-            severity: monaco.MarkerSeverity.Error,
-            startLineNumber: error.startLine,
-            startColumn: error.startCol,
-            endLineNumber: error.endLine,
-            endColumn: error.endCol,
-         })
-      ),
-   );
+//as a function of time, will specify the range of syllables to highlight 
+var syllablesAnimationFunction = undefined;
+
+const syllableTime = 1000; //milliseconds
+
+
+//parse, statics, report errors, construct animation functions
+function consumeText() {
+  let [retreivedSyllablesAnimationFunction, errors] = process(editor.getModel().getValue(), syllableTime);
+  syllablesAnimationFunction = retreivedSyllablesAnimationFunction;
+  monaco.editor.setModelMarkers(editor.getModel(), 'owner',
+     errors.map((error) => 
+     (
+        {
+           message: error.message,
+           severity: monaco.MarkerSeverity.Error,
+           startLineNumber: error.startLine,
+           startColumn: error.startCol,
+           endLineNumber: error.endLine,
+           endColumn: error.endCol,
+        })
+     ),
+  );
+}
+
+import {process} from '../src/main/generated-javascript/main/typescript/Validate.js'
+editor.onDidChangeModelContent(consumeText);
+
+
+// Dynamically create a button to run code
+const button = document.createElement('button');
+button.innerText = 'run';
+button.id = 'run-button';
+
+// Add styles to the button (optional)
+button.style.padding = '10px 20px';
+button.style.backgroundColor = '#4CAF50';
+button.style.color = 'white';
+button.style.border = 'none';
+button.style.borderRadius = '5px';
+button.style.cursor = 'pointer';
+button.style.fontSize = '16px';
+button.style.marginBottom = '20px';
+
+button.className = 'action-button';
+
+// Add the button to the DOM (before the editor container)
+const container = document.getElementById('container');
+container.parentNode.insertBefore(button, container);
+
+// Add event listener to the button
+button.addEventListener('click', () => {
+  if (syllablesAnimationFunction === undefined) {
+    consumeText();
+    if (syllablesAnimationFunction === undefined) {
+      console.log("error: unable to retreived animation function");
+      return;
+    }
+  }
+  
+    // Create a decorations collection
+    const decorationsCollection = editor.createDecorationsCollection();
+     //perform animation
+    let startTime = Date.now();
+
+    var intervalId;
+    function updateDecorations() {
+      const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
+      let rangeValues = syllablesAnimationFunction(elapsedTime);
+      if (rangeValues != undefined) {
+        const range = new monaco.Range(rangeValues[0], rangeValues[1], rangeValues[2], rangeValues[3]);
+        // Define the decoration options
+        const decorationOptions = [{
+          range: range,
+          options: {
+              inlineClassName: 'highlighted',  // CSS class for the decoration
+          }
+        }];
+        // Add the decoration to the collection
+        decorationsCollection.set(decorationOptions);
+      }
+      else {
+        clearInterval(intervalId);
+        decorationsCollection.clear();
+      }
+    }
+    intervalId = setInterval(updateDecorations, syllableTime / 10);
+  
 });
