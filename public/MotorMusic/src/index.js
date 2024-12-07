@@ -114,7 +114,7 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
 //as a function of time, will specify the range of syllables to highlight 
 var syllablesAnimationFunction = undefined;
 
-const syllableTime = 1000; //milliseconds
+const syllableTime = 500; //milliseconds
 
 
 //parse, statics, report errors, construct animation functions
@@ -197,6 +197,10 @@ button.addEventListener('click', () => {
         decorationsCollection.clear();
       }
     }
-    intervalId = setInterval(updateDecorations, syllableTime / 10);
-  
+
+    //compute animation time, want the value closest to 1000 / 60 but which divides syllableTime
+    const idealFrameDuration = 1000/60; //60FPS
+    const numFramesWeWillFit = Math.ceil (syllableTime / idealFrameDuration); //ceil because we want to be at LEAST 60 FPS
+    const actualFrameDuration = syllableTime / numFramesWeWillFit ; 
+    intervalId = setInterval(updateDecorations, actualFrameDuration);
 });

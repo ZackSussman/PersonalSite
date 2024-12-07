@@ -1,7 +1,7 @@
 
 /// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
 import MotorMusicParserListener from "../../antlr/generated/MotorMusicParserListener";
-import { SyllableContext } from "../../antlr/generated/MotorMusicParser";
+import { SyllableContext, EmptyContext} from "../../antlr/generated/MotorMusicParser";
 
 
 
@@ -21,6 +21,12 @@ export class CreateSyllablesAnimationListener extends MotorMusicParserListener {
 
     exitSyllable = (ctx : SyllableContext) => {
 		this.syllableIndexToRangeMap[this.syllableIndex] = [ctx.start.line, ctx.start.column + 1, ctx.stop.line, ctx.stop.column + ctx.IDENT().getText().length + 1];
+        this.syllableIndex += 1;
+    }
+
+    //treat an underscore as a syllable (it is just an empty syllable)
+    exitEmpty = (ctx : EmptyContext) => {
+        this.syllableIndexToRangeMap[this.syllableIndex] = [ctx.start.line, ctx.start.column + 1, ctx.stop.line, ctx.stop.column + 2];//+2 = +1 + 1, the first 1 is initial shift, the second is correction factor
         this.syllableIndex += 1;
     }
 
