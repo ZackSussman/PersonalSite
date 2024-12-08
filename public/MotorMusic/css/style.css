@@ -1,7 +1,8 @@
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
-    background-color: #2f2f2f; 
+    background-color: #171617; 
+    overflow: hidden;
 }
 
 h1 {
@@ -16,7 +17,13 @@ h1 {
     position: absolute;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%); 
+    transform: translate(-50%, -58%); 
+
+}
+
+
+.monaco-editor::-webkit-scrollbar {
+  width: 12px; 
 }
 
 .monaco-editor .cursor {
@@ -63,7 +70,7 @@ h1 {
     font-size: 16px;
     margin-bottom: 20px;
     transition: all 0.2s ease; /* Smooth transition for size/color changes */
-
+    scale: 130%;
     /* Center the button */
     position: absolute;
     top: 20px; /* Adjust this value to position it as you like */

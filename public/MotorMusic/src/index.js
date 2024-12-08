@@ -25,7 +25,7 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       "editorLineNumber.activeForeground":  '#0bf098',
       "editorCursor.foreground": "#c933ffa6",
       "editor.selectionBackground": "#547a7a5c",
-      "editor.lineHighlightBackground": "#333333", 
+      "editor.lineHighlightBackground": "#111111", 
       "editor.lineHighlightBorder": "#00000000",
       "editorBracketHighlight.foreground1" : "#1ca182",
       "editorBracketHighlight.foreground2" : "#6b90ff",
@@ -62,13 +62,13 @@ monaco.editor.defineTheme('MotorMusicTheme', {
 const defaultCode = `(
     {
         ({twin|kl} {twin|kl}  {li|tle} | {star|_ } )
-        ({how|i} {won|der}  {where|you} | {are|_ } )
+        ({how|i} {won|der}  {what|you} | {are|_ } )
         ({up|a} {bove|the}  {world|so} | {high|_ } )
       |
         ({like|a} {dia|mond}  {in|the} | {sky|_ } )
     }
         (twin kle twin kle li tl | star _ )
-        how i won der where you 
+        how i won der what you 
 |
     are
 )`;
@@ -79,13 +79,16 @@ let editor = monaco.editor.create(document.getElementById('container'), {
     theme: 'MotorMusicTheme',
     overviewRulerLanes: 0,
     automaticLayout: true,
+    fontSize: 18,
     minimap: {
       enabled: false
     },
     matchBrackets: "near",
     bracketPairColorization: {
       enabled: false
-    }
+    },
+    scrollBeyondLastLine: false,  
+    smoothScrolling: false       
 });
 
 editor.layout();

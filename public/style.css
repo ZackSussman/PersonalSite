@@ -36,6 +36,7 @@ body {
     z-index: 1;
     width: 100vw;
     height: 100vh;
+    overflow: hidden;
 }
 
 div#nameBox {
@@ -54,10 +55,15 @@ div.scroller {
     height: 100vh;
     z-index: 0;
     text-align: center;
-    scroll-snap-type: y mandatory;
-    overflow-y: scroll;
-    overflow: scroll;
-    scroll-snap-type: mandatory;
+    font-size: 30px;
+
+    overflow: hidden;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -40%); 
+
 }
 
 section {
@@ -89,23 +95,30 @@ h1.WheelSectionHeader {
 
 p.WheelSectionParagraph {
     color:rgb(255, 255, 255);
-    font-size: large;
+    font-size: 25px;
     font-family: Geneva;
     font-weight: lighter;
     cursor:default;
     user-select:none;
-    width: 40vh;
+    width: 50vh;
     z-index: 0;
 }
 
 
 h1#name {
-    color: rgb(51, 225, 228);
+     /* Gradient text */
+     background: linear-gradient(135deg, #87CEEB, #6A5ACD, #40E0D0);
+     -webkit-background-clip: text;
+     -webkit-text-fill-color: transparent; /* Makes the text color transparent to show the gradient */
+     /* Fix potential clipping */
+    display: inline-block; /* Ensure proper layout for the gradient */
+    padding-right: 2px; /* Adds some space to prevent clipping of the last letter */
     font-family: Geneva;
     font-weight:lighter;
     margin: 0 30px;
     cursor:default;
     user-select:none;
+    
 }
 
 
@@ -144,6 +157,13 @@ div#websites {
     margin-right: 100vh;
 }
 
+#moveDown {
+    transform: translateY(10px);
+}
+
+#moveUp {
+    transform: translateY(-15px);
+}
 
 div#topBar {
     top: 0;
@@ -158,18 +178,20 @@ div#topBar {
     justify-content: start;
     /* background-color:rgb(0, 0, 0) */
     z-index: -1;
-    transform: translateY(4px) translateX(208px);
+    transform: translateY(4px) translateX(211px);
     transition: margin-right .5s; 
+
 }
 
 .socialIcon {
-    margin-top: 30px;
+    margin-top: 15px;
     width: 120px;
+    scale: 85%;
 }
 
 a.website {
     color:rgb(35, 178, 181);
-    width: 200px; 
+    width: 160px; 
     height: 20px;
     padding: 27px;
     color:rgb(255, 255, 255);
@@ -256,6 +278,7 @@ select:-webkit-autofill {
    --darkreader-selection-background: #004daa;
    --darkreader-selection-text: #e8e6e3;
 }
+
 
 /* Modified CSS */
 body {
