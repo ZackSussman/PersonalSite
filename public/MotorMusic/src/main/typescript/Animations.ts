@@ -48,11 +48,13 @@ export class BracesAnimationInfo {
 //the object stores the info that is needed by the JS to perform its animation
 export class AnimationInfo {
     currentSyllable : range;
+    currentSyllableLocation : number; //from 0 to 1, tells us how far along the syllable we are 
     //all sets of braces that the current scope lies within are stored between the following two fields
     bracketsInfo : BracesAnimationInfo[]; 
     parensInfo : BracesAnimationInfo[];
-    constructor(cS : range, b : BracesAnimationInfo[], p : BracesAnimationInfo[]) {
+    constructor(cS : range, csLoc : number, b : BracesAnimationInfo[], p : BracesAnimationInfo[]) {
         this.currentSyllable = cS;
+        this.currentSyllableLocation = csLoc;
         this.bracketsInfo = b;
         this.parensInfo = p;
     }
@@ -119,13 +121,11 @@ export class AnimationListener extends MotorMusicParserListener {
         return [n.symbol.line, n.symbol.column + 1, n.symbol.line, n.symbol.column + n.getText().length + 1];
     }
 
-    exitSyllable = (ctx : SyllableContext) => {
-        const thisSyllableRange : range = this.terminalNodeToRange(ctx.IDENT());
-        //update list of syllables
-		this.orderedSyllableRanges.push(thisSyllableRange);
+
+    //every time we come across a syllable, we must instantiate the braces info for that syllable
+    private updateBracesInfosForSyllableRange(syllableRange : range) {
         const bracketInfosForThisSyllable = [];
         const parensInfosForThisSyllable = [];
-        //update braces infos for this syllable 
         for (let bracketContext of this.currentBracketsInScope) {
             bracketInfosForThisSyllable.push(new BracesAnimationInfo(
                 this.terminalNodeToRange(bracketContext.LCURLY()),
@@ -145,13 +145,22 @@ export class AnimationListener extends MotorMusicParserListener {
                 parensContext
             ));
         }
-        this.bracketsInfo.set(thisSyllableRange, bracketInfosForThisSyllable);
-        this.parensInfo.set(thisSyllableRange, parensInfosForThisSyllable);
+        this.bracketsInfo.set(syllableRange, bracketInfosForThisSyllable);
+        this.parensInfo.set(syllableRange, parensInfosForThisSyllable);
+    }
+
+    exitSyllable = (ctx : SyllableContext) => {
+        const thisSyllableRange : range = this.terminalNodeToRange(ctx.IDENT());
+        //update list of syllables
+		this.orderedSyllableRanges.push(thisSyllableRange);
+        this.updateBracesInfosForSyllableRange(thisSyllableRange);
     }
 
     //treat an underscore as a syllable (it is just an empty syllable)
     exitEmpty = (ctx : EmptyContext) => {
-        this.orderedSyllableRanges.push(this.terminalNodeToRange(ctx.UNDERSCORE()));
+        let range = this.terminalNodeToRange(ctx.UNDERSCORE());
+        this.orderedSyllableRanges.push(range);
+        this.updateBracesInfosForSyllableRange(range);
     }
 
     enterConcat = (ctx : ConcatContext) => {
@@ -208,6 +217,8 @@ export class AnimationListener extends MotorMusicParserListener {
         }
         let currentSyllable = this.orderedSyllableRanges[thisSyllableIndex];
 
+        let syllableLocation = (elapsedTime - (thisSyllableIndex * this.timePerSyllable)) / this.timePerSyllable;
+
          //given the acc data, determine the location within the gesture of the brace
         function locationFromAccData(accData : BraceAccumData, this_ : AnimationListener ) {
             //Left sidie
@@ -236,7 +247,8 @@ export class AnimationListener extends MotorMusicParserListener {
             i.gestureLocation = locationFromAccData(this.parensAccumData.get(i.rctx), this);
         })
 
-        return new AnimationInfo(currentSyllable, bracketsAnimationInfos, parensAnimationInfos);
+
+        return new AnimationInfo(currentSyllable, syllableLocation, bracketsAnimationInfos, parensAnimationInfos);
     }
 	
 }

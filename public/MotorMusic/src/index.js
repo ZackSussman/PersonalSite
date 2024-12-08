@@ -59,12 +59,7 @@ monaco.editor.defineTheme('MotorMusicTheme', {
 });
 
 let editor = monaco.editor.create(document.getElementById('container'), {
-    value: [
-      '{',
-        '\t\t{bwa | ha ha}',
-      '\t|', 
-        '\t\t((ta | ri) | ki)',
-    '}'
+    value: ['({{ta|ri} {ki|ta} | {ta|ka}} | doom)'
     ].join('\n'),
     language: 'MotorMusic',
     theme: 'MotorMusicTheme',
@@ -201,27 +196,40 @@ button.addEventListener('click', () => {
      * @param {number} factor - A number between 0 and 1. 0 returns the original color, 1 returns white.
      * @returns {string} A string representing the resulting color in hex format.
      */
-        function morphColorToWhite(hexColor, factor) {
+        function morphColors(initialColor, finalColor, factor) {
         if (factor < 0 || factor > 1) {
           throw new Error("Factor must be between 0 and 1.");
         }
 
-        // Ensure hexColor is valid and remove the "#" if present
-        const cleanHex = hexColor.startsWith("#") ? hexColor.slice(1) : hexColor;
-        if (!/^[0-9A-Fa-f]{6}$/.test(cleanHex)) {
-          throw new Error("Invalid hex color format.");
+
+        //square for a tighter animation
+        factor = factor * factor;
+
+        function cleanHex(c) {
+          // Ensure hexColor is valid and remove the "#" if present
+          const cleanHex = c.startsWith("#") ? c.slice(1) : c;
+          if (!/^[0-9A-Fa-f]{6}$/.test(cleanHex)) {
+            throw new Error("Invalid hex color format.");
+          }
+          return cleanHex;
         }
 
-        // Parse the hex color into RGB components
-        const r = parseInt(cleanHex.slice(0, 2), 16);
-        const g = parseInt(cleanHex.slice(2, 4), 16);
-        const b = parseInt(cleanHex.slice(4, 6), 16);
-
+        function rgbFromCleaned(cleaned) {
+          // Parse the hex color into RGB components
+          return {
+            r: parseInt(cleanHex(cleaned).slice(0, 2), 16),
+            g: parseInt(cleanHex(cleaned).slice(2, 4), 16),
+            b: parseInt(cleaned.slice(4, 6), 16)
+          }
+        }
+        
+        let cleanedInitial = rgbFromCleaned(cleanHex(initialColor));
+        let cleanedFinal = rgbFromCleaned(cleanHex(finalColor));
         // Interpolate each channel towards white (255)
-        const newR = Math.round(r + factor * (255 - r));
-        const newG = Math.round(g + factor * (255 - g));
-        const newB = Math.round(b + factor * (255 - b));
-
+        const newR = Math.round(cleanedInitial.r + factor * (cleanedFinal.r - cleanedInitial.r));
+        const newG = Math.round(cleanedInitial.g + factor * (cleanedFinal.g - cleanedInitial.g));
+        const newB = Math.round(cleanedInitial.b + factor * (cleanedFinal.b - cleanedInitial.b));
+     
         // Convert the new RGB values back to hex and return
         const toHex = (value) => value.toString(16).padStart(2, "0").toUpperCase();
         return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
@@ -240,10 +248,11 @@ button.addEventListener('click', () => {
         stylesheet.cssRules[ruleIndex].style.color = color;
       }
 
+      updateCss("highlighted", morphColors( "#0075ff" , "#42D6FF", Math.pow(Math.sin(Math.PI * animationInfo.currentSyllableLocation), .33)));
+
       bracketInfos.forEach(bracketInfo => {
         let leftSide = bracketInfo.gestureLocation.leftSide;
         let amount = bracketInfo.gestureLocation.amount;
-        
 
         function bracketIndexToInitialColor(bracketIndex) {
           let index = bracketIndex % 3;
@@ -264,12 +273,12 @@ button.addEventListener('click', () => {
         if (leftSide) {
           //when amount is 0, we are all the way at the left and want to be white...
           //on the other hand, when amount is 1, we have reached the middle and want to be initial color
-          color = morphColorToWhite(bracketIndexToInitialColor(bracketInfo.depth), 1 - amount);
+          color = morphColors(bracketIndexToInitialColor(bracketInfo.depth), "#FFFFFF", 1 - amount);
         }
         else {
           //on RHS, a 1 means we have reached the end and want to be white again, while a 0 means that we just started from | 
           //and want to be roughly the same color
-          color = morphColorToWhite(bracketIndexToInitialColor(bracketInfo.depth), amount);
+          color = morphColors(bracketIndexToInitialColor(bracketInfo.depth), "#FFFFFF", amount);
         }
         let className = 'bracketHighlight' + (bracketInfo.depth % 3);
 
@@ -322,11 +331,11 @@ button.addEventListener('click', () => {
         let color
         if (leftSide) {
           //for parens, we are white in the middle (1 for left), and normal in the beginning
-          color = morphColorToWhite(parenIndexToInitialColor(parenInfo.depth), amount);
+          color = morphColors(parenIndexToInitialColor(parenInfo.depth), "#FFFFFF", amount);
         }
         else {
           //while on RHS of paren, we start at full white and end back at normal color
-          color = morphColorToWhite(parenIndexToInitialColor(parenInfo.depth), 1 - amount);
+          color = morphColors(parenIndexToInitialColor(parenInfo.depth), "#FFFFFF", 1 - amount);
         }
 
 
