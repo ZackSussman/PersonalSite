@@ -20,13 +20,32 @@ h1 {
 
 
 .monaco-editor .highlighted {
-  color: rgb(66, 214, 255) !important
+  color: rgb(66, 214, 255)
 }
 
-.monaco-editor .bracket-highlighted {
-  color: rgb(222, 222, 222) !important
+.monaco-editor .bracketHighlight0 {
+  color: #1ca182 
 }
 
+.monaco-editor .bracketHighlight1 {
+  color: #6b90ff
+}
+
+.monaco-editor .bracketHighlight2 {
+  color: #fe00ff
+}
+
+.monaco-editor .parenHighlight0 {
+  color: #fe00ff
+}
+
+.monaco-editor .parenHighlight1 {
+  color: #1ca182
+}
+
+.monaco-editor .parenHighlight2 {
+  color: #6b90ff
+}
 
 /* Default button style */
 .action-button {

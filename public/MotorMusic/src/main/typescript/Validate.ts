@@ -72,8 +72,7 @@ export class CollectorErrorListener extends ErrorListener<Token> {
 
 
 
-type syllableAnimationFunction = (elapsedTime : number) => [number, number, number, number]
-type bracesAnimationFunction = (elapsedTime : number) => BracesAnimationInfo[]
+type animationFunction = (elapsedTime : number) => AnimationInfo
 
 //process involves two main steps
 //1) lex and parse to validate with static analysis and get parse tree
@@ -82,9 +81,9 @@ type bracesAnimationFunction = (elapsedTime : number) => BracesAnimationInfo[]
 //import {MusicContext, CompilationUnitContext} from "../../antlr/generated/MotorMusicParser";
 import {ParseTreeWalker} from "antlr4";
 import {MotorMusicParserStaticAnalysisListener} from "./Statics";
-import {AnimationListener, BracesAnimationInfo} from "./Animations";
+import {AnimationListener, AnimationInfo} from "./Animations";
 export function process(input : string, syllableLength : number) : 
-    [syllableAnimationFunction, bracesAnimationFunction, bracesAnimationFunction, Error[]] 
+    [animationFunction, Error[]] 
     {
     let errors : Error[] = []
     const lexer = createLexer(input);
@@ -99,15 +98,9 @@ export function process(input : string, syllableLength : number) :
     errors = errors.concat(staticAnalysisListener.errors);
     let animationListener = new AnimationListener(syllableLength);
     ParseTreeWalker.DEFAULT.walk(animationListener, tree);
-    function packageSyllablesAnimationFunction(x : number) {
-        //locally capture createAnimationListener
-        return animationListener.syllablesAnimationFunction(x);
+
+    function packageGetAnimationInfo(x : number) {
+        return animationListener.getAnimationInfoForTime(x);
     }
-    function packageBracesAnimationFunction(x : number) {
-        return animationListener.bracketsAnimationFunction(x);
-    }
-    function packageParensAnimationFunction(x : number) {
-        return animationListener.parensAnimationFunction(x);
-    }
-    return [packageSyllablesAnimationFunction, packageBracesAnimationFunction, packageParensAnimationFunction, errors];
+    return [packageGetAnimationInfo, errors];
 }

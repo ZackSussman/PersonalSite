@@ -8,7 +8,7 @@ export class MotorMusicState implements monaco.languages.IState {
 
     //store a stack for every frame of either curly brackets or parenthesis, of which type of token it is
     //true is for parenthesis, false is for curly brackets
-    bracketContextFrames : boolean[] = [];
+    bracketContextFrameTypeIndicators : boolean[] = [];
     //we are working in mods, so we want 0 to correspond to the first level of depth!
     curlyDepth : number = -1; 
     parenthesisDepth : number = -1;
@@ -17,7 +17,7 @@ export class MotorMusicState implements monaco.languages.IState {
 
     clone(): monaco.languages.IState {
         let res = new MotorMusicState();
-        res.bracketContextFrames = [...this.bracketContextFrames];
+        res.bracketContextFrameTypeIndicators = [...this.bracketContextFrameTypeIndicators];
         res.curlyDepth = this.curlyDepth;
         res.parenthesisDepth = this.parenthesisDepth;
         res.bracketDepth = this.bracketDepth;
@@ -25,7 +25,7 @@ export class MotorMusicState implements monaco.languages.IState {
     }
 
     equals(other: MotorMusicState): boolean {
-        return (other.bracketContextFrames == this.bracketContextFrames
+        return (other.bracketContextFrameTypeIndicators == this.bracketContextFrameTypeIndicators
                     && other.curlyDepth == this.curlyDepth
                     && other.bracketDepth == this.bracketDepth
         );
@@ -96,11 +96,11 @@ export function tokensForLine(input: string, state : MotorMusicState): monaco.la
         //all opening bracket adjustments done before processing of the current token 
         if (token.text == "{") {
             state.curlyDepth += 1;
-            state.bracketContextFrames.push(false);
+            state.bracketContextFrameTypeIndicators.push(false);
         }
         else if (token.text == "(") {
             state.parenthesisDepth += 1;
-            state.bracketContextFrames.push(true);
+            state.bracketContextFrameTypeIndicators.push(true);
         }
         else if (token.text == "[") {
             state.bracketDepth += 1;
@@ -111,9 +111,9 @@ export function tokensForLine(input: string, state : MotorMusicState): monaco.la
             done = true
         } else {
             var tokenTypeName;
-            if (CONTEXT_SENSITIVE_TOKENS.includes(token.text) && state.bracketContextFrames.length > 0) {
+            if (CONTEXT_SENSITIVE_TOKENS.includes(token.text) && state.bracketContextFrameTypeIndicators.length > 0) {
                 //parenthesis case
-                if (state.bracketContextFrames.at(-1)) {
+                if (state.bracketContextFrameTypeIndicators.at(-1)) {
                     tokenTypeName = lexer.symbolicNames[token.type] + "p" +  (state.parenthesisDepth % 3).toString();
                 }
                 //curly case
@@ -153,13 +153,13 @@ export function tokensForLine(input: string, state : MotorMusicState): monaco.la
         }
         else if (token.text == "}") {
             state.curlyDepth -= 1;
-            if (state.bracketContextFrames.pop()) {
+            if (state.bracketContextFrameTypeIndicators.pop()) {
                 throw new Error("mismatch frame popping for curly brace");
             }
         }
         else if (token.text == ")") {
             state.parenthesisDepth -= 1;
-            if (!(state.bracketContextFrames.pop())) {
+            if (!(state.bracketContextFrameTypeIndicators.pop())) {
                 throw new Error("mismatch frame popping for parenthesis");
             }
         }

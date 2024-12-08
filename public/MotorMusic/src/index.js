@@ -101,19 +101,15 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
 
 
 //as a function of time, will specify the range of syllables to highlight 
-var syllablesAnimationFunction = undefined;
-var bracketsAnimationFunction = undefined;
-var parensAnimationFunction = undefined;
+var getAnimationInfoFunction = undefined;
 
 const syllableTime = 1000; //milliseconds
 
 
 //parse, statics, report errors, construct animation functions
 function consumeText() {
-  let [retreivedSyllablesAnimationFunction, retreivedBracketsAnimationFunction, retreivedParensAnimationFunction, errors] = process(editor.getModel().getValue(), syllableTime);
-  syllablesAnimationFunction = retreivedSyllablesAnimationFunction;
-  bracketsAnimationFunction = retreivedBracketsAnimationFunction;
-  parensAnimationFunction = retreivedParensAnimationFunction;
+  let [retreivedGetAnimationInfoFunction,  errors] = process(editor.getModel().getValue(), syllableTime);
+  getAnimationInfoFunction = retreivedGetAnimationInfoFunction;
   monaco.editor.setModelMarkers(editor.getModel(), 'owner',
      errors.map((error) => 
      (
@@ -156,9 +152,9 @@ container.parentNode.insertBefore(button, container);
 
 // Add event listener to the button
 button.addEventListener('click', () => {
-  if (syllablesAnimationFunction === undefined) {
+  if (getAnimationInfoFunction === undefined) {
     consumeText();
-    if (syllablesAnimationFunction === undefined) {
+    if (getAnimationInfoFunction === undefined) {
       console.log("error: unable to retreived animation function");
       return;
     }
@@ -172,48 +168,77 @@ button.addEventListener('click', () => {
     var intervalId;
     function updateDecorations() {
       const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
-      let rangeValues = syllablesAnimationFunction(elapsedTime);
-      let bracketInfos = bracketsAnimationFunction(elapsedTime).concat(parensAnimationFunction(elapsedTime));
-      if (rangeValues != undefined) {
-        //we had constructed ranges in our typescript as a 4 tupule, now we can create an actual range from it
-        function fakeRangeToRange(x) {
-          return new monaco.Range(x[0], x[1], x[2], x[3]);
+      let animationInfo = getAnimationInfoFunction(elapsedTime);
+      if (animationInfo === undefined) {
+        clearInterval(intervalId);
+        decorationsCollection.clear();
+        return;
+      }
+      let syllableRangeValues = animationInfo.currentSyllable;
+      let bracketInfos = animationInfo.bracketsInfo;
+      let parenInfos = animationInfo.parensInfo;
+     
+      //we had constructed ranges in our typescript as a 4 tupule, now we can create an actual range from it
+      function fakeRangeToRange(x) {
+        return new monaco.Range(x[0], x[1], x[2], x[3]);
+      }
+
+      const syllableDecorationOptions = [{
+        range: fakeRangeToRange(syllableRangeValues),
+        options: {
+            inlineClassName: 'highlighted', 
         }
-        const syllableRange = fakeRangeToRange(rangeValues);
-        // Define the decoration options
-        const syllableDecorationOptions = [{
-          range: syllableRange,
+      }];
+
+      var bracketDecorationOptions = [];
+      for (let bracketInfo of bracketInfos ) {
+        let className = 'bracketHighlight' + (bracketInfo.depth % 3);
+        bracketDecorationOptions.push({
+          range: fakeRangeToRange(bracketInfo.openBraceRange),
           options: {
-              inlineClassName: 'highlighted',  // CSS class for the decoration
+            inlineClassName : className
           }
-        }];
+        });
+        bracketDecorationOptions.push({
+          range: fakeRangeToRange(bracketInfo.closeBraceRange),
+          options: {
+            inlineClassName : className
+          }
+        });
+        bracketDecorationOptions.push({
+          range: fakeRangeToRange(bracketInfo.midRange),
+          options: {
+            inlineClassName : className
+          }
+        })
+      }
 
-        var bracketRanges = [];
-        for (let bracketInfo of bracketInfos) {
-          bracketRanges.push(fakeRangeToRange(bracketInfo.openBraceRange));
-          bracketRanges.push(fakeRangeToRange(bracketInfo.closeBraceRange));
-          bracketRanges.push(fakeRangeToRange(bracketInfo.midRange));
-        }
-        let bracketDecorationOptions = [];
-        //ugh I would have written a map but the compiler was angry about smth
-        for (let range of bracketRanges) {
-          bracketDecorationOptions.push({
-            range: range,
-            options: {
-              inlineClassName: 'bracket-highlighted'
-            }
-          });
-        }
-
+      for (let parenInfo of parenInfos ) {
+        let className = 'parenHighlight' + (parenInfo.depth % 3);
+        bracketDecorationOptions.push({
+          range: fakeRangeToRange(parenInfo.openBraceRange),
+          options: {
+            inlineClassName : className
+          }
+        });
+        bracketDecorationOptions.push({
+          range: fakeRangeToRange(parenInfo.closeBraceRange),
+          options: {
+            inlineClassName : className
+          }
+        });
+        bracketDecorationOptions.push({
+          range: fakeRangeToRange(parenInfo.midRange),
+          options: {
+            inlineClassName : className
+          }
+        })
+      }
 
         // Add the decoration to the collection
         decorationsCollection.set(syllableDecorationOptions.concat(bracketDecorationOptions));
 
-      }
-      else {
-        clearInterval(intervalId);
-        decorationsCollection.clear();
-      }
+      
     }
 
     //compute animation time, want the value closest to 1000 / 60 but which divides syllableTime
