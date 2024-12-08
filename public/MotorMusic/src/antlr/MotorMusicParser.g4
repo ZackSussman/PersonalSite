@@ -4,7 +4,7 @@ options {tokenVocab = MotorMusicLexer;}
 
 compilationUnit:
      e = EOF #EmptyProgram
-    | e = music #NonEmptyProgram
+    | e = music EOF #NonEmptyProgram
 ;
 
 

@@ -1,5 +1,5 @@
 /// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
-import {createLexer} from './Validate'
+import {createLexer} from './Compile'
 import {CommonTokenStream, InputStream, Token, ErrorListener} from 'antlr4'
 import ILineTokens = monaco.languages.ILineTokens;
 import IToken = monaco.languages.IToken;

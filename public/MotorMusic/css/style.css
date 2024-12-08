@@ -64,11 +64,11 @@ h1 {
     margin-bottom: 20px;
     transition: all 0.2s ease; /* Smooth transition for size/color changes */
 
-      /* Center the button */
-      position: absolute;
-      top: 20px; /* Adjust this value to position it as you like */
-      left: 50%; /* Move the button to the center */
-      transform: translateX(-50%); /* Adjust to exactly center it */
+    /* Center the button */
+    position: absolute;
+    top: 20px; /* Adjust this value to position it as you like */
+    left: 50%; /* Move the button to the center */
+    transform: translateX(-50%); /* Adjust to exactly center it */
   }
   
   /* Hover style (optional) */
@@ -80,6 +80,12 @@ h1 {
   .action-button:active {
     background-color: #3e8e41;
     transform: scale(0.95); /* Shrink slightly for a "pressing" effect */
+
+    /* Center the button */
+    position: absolute;
+    top: 20px; /* Adjust this value to position it as you like */
+    left: 50%; /* Move the button to the center */
+    transform: translateX(-50%); /* Adjust to exactly center it */
   }
   
 

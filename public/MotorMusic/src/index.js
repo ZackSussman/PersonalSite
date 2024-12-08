@@ -110,11 +110,11 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
    ]
 });
 
-
+//RUNTIME DATA--------------------------------
 //as a function of time, will specify the range of syllables to highlight 
 var getAnimationInfoFunction = undefined;
-
 const syllableTime = 500; //milliseconds
+var areWeCurrentlyPlayingBack = false;
 
 
 //parse, statics, report errors, construct animation functions
@@ -163,6 +163,11 @@ container.parentNode.insertBefore(button, container);
 
 // Add event listener to the button
 button.addEventListener('click', () => {
+  //don't allow click if we are currently playing back
+  if (areWeCurrentlyPlayingBack) {
+    return;
+  }
+
   if (getAnimationInfoFunction === undefined) {
     consumeText();
     if (getAnimationInfoFunction === undefined) {
@@ -183,6 +188,7 @@ button.addEventListener('click', () => {
       if (animationInfo === undefined) {
         clearInterval(intervalId);
         decorationsCollection.clear();
+        areWeCurrentlyPlayingBack = false;
         return;
       }
       let syllableRangeValues = animationInfo.currentSyllable;
@@ -388,4 +394,5 @@ button.addEventListener('click', () => {
     const numFramesWeWillFit = Math.ceil (syllableTime / idealFrameDuration); //ceil because we want to be at LEAST 60 FPS
     const actualFrameDuration = syllableTime / numFramesWeWillFit ; 
     intervalId = setInterval(updateDecorations, actualFrameDuration);
+    areWeCurrentlyPlayingBack = true;
 });
