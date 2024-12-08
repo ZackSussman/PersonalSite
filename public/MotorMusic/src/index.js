@@ -59,24 +59,19 @@ monaco.editor.defineTheme('MotorMusicTheme', {
 });
 
 
-const defaultCode = `
-(
+const defaultCode = `(
     {
-        {{twin|kl} {twin|kl}  {li|tle} | {star|_ } }  
-        {{how|i} {won|der}  {where|you} | {are|_ } }
-        {{up|a} {bove|the}  {world|so} | {high|_ } }
+        ({twin|kl} {twin|kl}  {li|tle} | {star|_ } )
+        ({how|i} {won|der}  {where|you} | {are|_ } )
+        ({up|a} {bove|the}  {world|so} | {high|_ } )
       |
-        {{like|a} {dia|mond}  {in|the} | {sky|_ } }
+        ({like|a} {dia|mond}  {in|the} | {sky|_ } )
     }
-        {{twin|kl} {twin|kl}  {li|tle} | {star|_ } }  
-        {how|i} 
-        {won|der}  
-        {where|you}
+        (twin kle twin kle li tl | star _ )
+        how i won der where you 
 |
     are
-)
-
-`;
+)`;
 
 let editor = monaco.editor.create(document.getElementById('container'), {
     value: defaultCode,
@@ -92,6 +87,8 @@ let editor = monaco.editor.create(document.getElementById('container'), {
       enabled: false
     }
 });
+
+editor.layout();
 
 monaco.languages.setLanguageConfiguration('MotorMusic', {
  /*  brackets: [

@@ -1,7 +1,7 @@
 body {
     font-family: Arial, sans-serif;
     margin: 20px;
-    background-color: #0c0c0c;
+    background-color: #2f2f2f; 
 }
 
 h1 {
@@ -9,9 +9,14 @@ h1 {
 }
 
 #container {
-    height: 800px;
-    width: 950px;
+    height: 65vh;
+    width: 120vh;
     border: 1px solid #4f4f4f;
+
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); 
 }
 
 .monaco-editor .cursor {
@@ -58,6 +63,12 @@ h1 {
     font-size: 16px;
     margin-bottom: 20px;
     transition: all 0.2s ease; /* Smooth transition for size/color changes */
+
+      /* Center the button */
+      position: absolute;
+      top: 20px; /* Adjust this value to position it as you like */
+      left: 50%; /* Move the button to the center */
+      transform: translateX(-50%); /* Adjust to exactly center it */
   }
   
   /* Hover style (optional) */

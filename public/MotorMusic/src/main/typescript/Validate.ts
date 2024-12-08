@@ -93,14 +93,17 @@ export function process(input : string, syllableLength : number) :
     parser.removeErrorListeners();
     parser.addErrorListener(new CollectorErrorListener(errors));
     const tree = parser.compilationUnit();
-    let staticAnalysisListener = new MotorMusicParserStaticAnalysisListener();
+    let staticAnalysisListener = new MotorMusicParserStaticAnalysisListener(input);
     ParseTreeWalker.DEFAULT.walk(staticAnalysisListener, tree);
     errors = errors.concat(staticAnalysisListener.errors);
-    let animationListener = new AnimationListener(syllableLength);
-    ParseTreeWalker.DEFAULT.walk(animationListener, tree);
+    if (errors.length === 0) {
+        let animationListener = new AnimationListener(syllableLength);
+        ParseTreeWalker.DEFAULT.walk(animationListener, tree);
 
-    function packageGetAnimationInfo(x : number) {
-        return animationListener.getAnimationInfoForTime(x);
+        function packageGetAnimationInfo(x : number) {
+            return animationListener.getAnimationInfoForTime(x);
+        }
+        return [packageGetAnimationInfo, errors];
     }
-    return [packageGetAnimationInfo, errors];
+    return [undefined, errors];
 }

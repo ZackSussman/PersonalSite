@@ -1,15 +1,23 @@
 
 import {Error} from "./Validate";
 import {ParserRuleContext} from "antlr4";
+import { NonEmptyProgramContext} from "../../antlr/generated/MotorMusicParser"; 
 import MotorMusicParserListener from "../../antlr/generated/MotorMusicParserListener";
 
+//we have to check that the parse tree actually encompasses the entire code
 export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserListener {
 
     errors : Error[] = [];
 
-    constructor() {
+	parsedText : string
+
+	programText : string
+
+    constructor(programText) {
         super();
         this.errors = [];
+		this.parsedText = "";
+		this.programText = programText
     }
 
 	private addError(message : string, ctx : ParserRuleContext) {
@@ -19,8 +27,14 @@ export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserList
 		}
 	}
 
-	private formatCtxPosition(ctx : ParserRuleContext) : string {
-		return ctx.start.line.toString() + "." + ctx.start.column.toString() + "-" + ctx.stop.line.toString() + "." + ctx.stop.column.toString();
+
+	exitNonEmptyProgram = (ctx : NonEmptyProgramContext) => {
+		this.parsedText = ctx.getText();
+		if (this.parsedText.replace(/\s+/g, '') != this.programText.replace(/\s+/g, '')) {
+			var errorMessage = "failure to parse program: a subset of the code parsed, but the rest was left out";
+			errorMessage += "the parsed code is: " + this.parsedText;
+			this.addError(errorMessage, ctx);
+		}
 	}
 
 	

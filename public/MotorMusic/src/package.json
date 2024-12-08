@@ -21,7 +21,8 @@
     },
     "main": "index.js",
     "scripts": {
-        "test": "echo \"Error: no test specified\" && exit 1"
+        "test": "echo \"Error: no test specified\" && exit 1",
+        "build": "cd main && tsc && cd .. && npx webpack --config webpack.config.cjs && cd .. && python3 -m http.server"
     },
     "keywords": [],
     "license": "ISC",
