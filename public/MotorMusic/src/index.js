@@ -58,9 +58,28 @@ monaco.editor.defineTheme('MotorMusicTheme', {
     ]
 });
 
+
+const defaultCode = `
+(
+    {
+        {{twin|kl} {twin|kl}  {li|tle} | {star|_ } }  
+        {{how|i} {won|der}  {where|you} | {are|_ } }
+        {{up|a} {bove|the}  {world|so} | {high|_ } }
+      |
+        {{like|a} {dia|mond}  {in|the} | {sky|_ } }
+    }
+        {{twin|kl} {twin|kl}  {li|tle} | {star|_ } }  
+        {how|i} 
+        {won|der}  
+        {where|you}
+|
+    are
+)
+
+`;
+
 let editor = monaco.editor.create(document.getElementById('container'), {
-    value: ['({{ta|ri} {ki|ta} | {ta|ka}} | doom)'
-    ].join('\n'),
+    value: defaultCode,
     language: 'MotorMusic',
     theme: 'MotorMusicTheme',
     overviewRulerLanes: 0,
