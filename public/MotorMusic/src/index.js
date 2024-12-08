@@ -103,7 +103,7 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
 //as a function of time, will specify the range of syllables to highlight 
 var getAnimationInfoFunction = undefined;
 
-const syllableTime = 1000; //milliseconds
+const syllableTime = 500; //milliseconds
 
 
 //parse, statics, report errors, construct animation functions
@@ -183,16 +183,98 @@ button.addEventListener('click', () => {
         return new monaco.Range(x[0], x[1], x[2], x[3]);
       }
 
+
       const syllableDecorationOptions = [{
         range: fakeRangeToRange(syllableRangeValues),
         options: {
-            inlineClassName: 'highlighted', 
+            inlineClassName: 'highlighted'
         }
       }];
 
       var bracketDecorationOptions = [];
-      for (let bracketInfo of bracketInfos ) {
+
+
+              /**
+     * Morphs a hex color towards white based on a factor from 0 to 1.
+     * 
+     * @param {string} hexColor - A string representing the initial color in hex format (e.g., "#FF5733").
+     * @param {number} factor - A number between 0 and 1. 0 returns the original color, 1 returns white.
+     * @returns {string} A string representing the resulting color in hex format.
+     */
+        function morphColorToWhite(hexColor, factor) {
+        if (factor < 0 || factor > 1) {
+          throw new Error("Factor must be between 0 and 1.");
+        }
+
+        // Ensure hexColor is valid and remove the "#" if present
+        const cleanHex = hexColor.startsWith("#") ? hexColor.slice(1) : hexColor;
+        if (!/^[0-9A-Fa-f]{6}$/.test(cleanHex)) {
+          throw new Error("Invalid hex color format.");
+        }
+
+        // Parse the hex color into RGB components
+        const r = parseInt(cleanHex.slice(0, 2), 16);
+        const g = parseInt(cleanHex.slice(2, 4), 16);
+        const b = parseInt(cleanHex.slice(4, 6), 16);
+
+        // Interpolate each channel towards white (255)
+        const newR = Math.round(r + factor * (255 - r));
+        const newG = Math.round(g + factor * (255 - g));
+        const newB = Math.round(b + factor * (255 - b));
+
+        // Convert the new RGB values back to hex and return
+        const toHex = (value) => value.toString(16).padStart(2, "0").toUpperCase();
+        return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
+      }
+
+
+      function updateCss(className, color) {
+        //update css with computed color
+        let stylesheet = document.styleSheets[0];
+        let ruleIndex = Array.from(stylesheet.cssRules).findIndex(rule => {
+            return rule.selectorText.includes(className)});
+        if (ruleIndex === -1) {
+          console.log("error: couldn't find rule index for updating css");
+          return;
+        }
+        stylesheet.cssRules[ruleIndex].style.color = color;
+      }
+
+      bracketInfos.forEach(bracketInfo => {
+        let leftSide = bracketInfo.gestureLocation.leftSide;
+        let amount = bracketInfo.gestureLocation.amount;
+        
+
+        function bracketIndexToInitialColor(bracketIndex) {
+          let index = bracketIndex % 3;
+          if (index === 0) {
+            return "#1ca182"
+          }
+          else if (index === 1) {
+            return "#6b90ff"
+          }
+          else {
+            //assert(index === 2)
+            return "#fe00ff"
+          }
+        }
+
+        //retreive color from amount
+        let color
+        if (leftSide) {
+          //when amount is 0, we are all the way at the left and want to be white...
+          //on the other hand, when amount is 1, we have reached the middle and want to be initial color
+          color = morphColorToWhite(bracketIndexToInitialColor(bracketInfo.depth), 1 - amount);
+        }
+        else {
+          //on RHS, a 1 means we have reached the end and want to be white again, while a 0 means that we just started from | 
+          //and want to be roughly the same color
+          color = morphColorToWhite(bracketIndexToInitialColor(bracketInfo.depth), amount);
+        }
         let className = 'bracketHighlight' + (bracketInfo.depth % 3);
+
+        updateCss(className, color);
+
         bracketDecorationOptions.push({
           range: fakeRangeToRange(bracketInfo.openBraceRange),
           options: {
@@ -211,10 +293,45 @@ button.addEventListener('click', () => {
             inlineClassName : className
           }
         })
-      }
+      })
 
-      for (let parenInfo of parenInfos ) {
+      parenInfos.forEach(parenInfo => {
+        let leftSide = parenInfo.gestureLocation.leftSide;
+        let amount = parenInfo.gestureLocation.amount;
+        
+
+        function parenIndexToInitialColor(parenIndex) {
+          let index = parenIndex % 3;
+          if (index === 0) {
+            return "#fe00ff"
+          }
+          else if (index === 1) {
+            return "#1ca182"
+          }
+          else {
+            //assert(index === 2)
+            return "#6b90ff"
+          }
+        }
+
+
+
         let className = 'parenHighlight' + (parenInfo.depth % 3);
+
+
+        let color
+        if (leftSide) {
+          //for parens, we are white in the middle (1 for left), and normal in the beginning
+          color = morphColorToWhite(parenIndexToInitialColor(parenInfo.depth), amount);
+        }
+        else {
+          //while on RHS of paren, we start at full white and end back at normal color
+          color = morphColorToWhite(parenIndexToInitialColor(parenInfo.depth), 1 - amount);
+        }
+
+
+        updateCss(className, color);
+
         bracketDecorationOptions.push({
           range: fakeRangeToRange(parenInfo.openBraceRange),
           options: {
@@ -233,7 +350,7 @@ button.addEventListener('click', () => {
             inlineClassName : className
           }
         })
-      }
+      })
 
         // Add the decoration to the collection
         decorationsCollection.set(syllableDecorationOptions.concat(bracketDecorationOptions));
