@@ -92,7 +92,6 @@ export function tokensForLine(input: string, state : MotorMusicState): monaco.la
     let myTokens: monaco.languages.IToken[] = [];
     do {
         let token = lexer.nextToken();
-
         //all opening bracket adjustments done before processing of the current token 
         if (token.text == "{") {
             state.curlyDepth += 1;

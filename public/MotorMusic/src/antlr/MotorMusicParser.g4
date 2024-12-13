@@ -20,7 +20,9 @@ music_list:
 
 music:
     UNDERSCORE #Empty
+  | number = NUMBER UNDERSCORE #TimeTaggedEmpty
   | syllable = IDENT #Syllable
+  | number = NUMBER syllable = IDENT #TimeTaggedSyllable
   | LPAREN towards = music_list MID awayFrom = music_list RPAREN #Resolve
   | LCURLY awayFrom = music_list MID towards = music_list RCURLY #Concat
 ;

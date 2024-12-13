@@ -6,6 +6,8 @@ WS: ('\r\n'+ | '\r'+ | '\n'+ | [ \t]+) -> channel(WS_CHANNEL);
 
 IDENT : [a-z/']+;
 
+NUMBER : [0-9]+ | [0-9]+.[0-9]+ | '.'[0-9]+;
+
 LCURLY : '{';
 RCURLY : '}';
 LPAREN : '(';
@@ -17,4 +19,4 @@ RSQBRACKET : ']';
 MID : '|';
 UNDERSCORE : '_';
 
-UNRECOGNIZED : . ;
+UNRECOGNIZED : .;
