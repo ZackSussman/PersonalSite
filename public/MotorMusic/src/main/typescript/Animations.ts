@@ -47,13 +47,14 @@ export class BracesAnimationInfo {
 
 //the object stores the info that is needed by the JS to perform its animation
 export class AnimationInfo {
-    currentSyllable : range;
+    currentSyllableRanges : range[]; //array of ranges to light up for the current syllable 
+    //note we need it to be an array so we can potentially have information for a syllable as well as a number in front of it 
     currentSyllableLocation : number; //from 0 to 1, tells us how far along the syllable we are 
     //all sets of braces that the current scope lies within are stored between the following two fields
     bracketsInfo : BracesAnimationInfo[]; 
     parensInfo : BracesAnimationInfo[];
-    constructor(cS : range, csLoc : number, b : BracesAnimationInfo[], p : BracesAnimationInfo[]) {
-        this.currentSyllable = cS;
+    constructor(syllableRanges : range[], csLoc : number, b : BracesAnimationInfo[], p : BracesAnimationInfo[]) {
+        this.currentSyllableRanges = syllableRanges;
         this.currentSyllableLocation = csLoc;
         this.bracketsInfo = b;
         this.parensInfo = p;
@@ -80,10 +81,12 @@ class BraceAccumData {
 //data for each syllable that we will accumulate in their order as we parse
 class SyllableData {
     duration : number; //units of this are in pulses (so it's the number of pulses)
-    range : range //where is the syllable in the code 
-    constructor(d : number, r : range) {
+    syllable_range : range //where is the syllable in the code 
+    number_range : range //range for the corresponding 
+    constructor(d : number, r : range, nr : range) {
         this.duration = d;
-        this.range = r;
+        this.syllable_range = r;
+        this.number_range = nr;
     }
 };
 
@@ -172,26 +175,28 @@ export class AnimationListener extends MotorMusicParserListener {
     exitSyllable = (ctx : SyllableContext) => {
         const thisSyllableRange : range = this.terminalNodeToRange(ctx.IDENT());
         //update list of syllables
-		this.orderedSyllableData.push(new SyllableData(1, thisSyllableRange));
+		this.orderedSyllableData.push(new SyllableData(1, thisSyllableRange, undefined));
         this.updateBracesInfosForSyllableRange(thisSyllableRange);
     }
 
     exitTimeTaggedSyllable = (ctx : TimeTaggedSyllableContext) => {
         const thisSyllableRange : range = this.terminalNodeToRange(ctx.IDENT());
-        this.orderedSyllableData.push(new SyllableData(this.numberTokenToNumber(ctx.NUMBER()), thisSyllableRange));
+        const thisNumberRange : range = this.terminalNodeToRange(ctx.NUMBER());
+        this.orderedSyllableData.push(new SyllableData(this.numberTokenToNumber(ctx.NUMBER()), thisSyllableRange, thisNumberRange));
         this.updateBracesInfosForSyllableRange(thisSyllableRange);
     }
 
     //treat an underscore as a syllable (it is just an empty syllable)
     exitEmpty = (ctx : EmptyContext) => {
         let range = this.terminalNodeToRange(ctx.UNDERSCORE());
-        this.orderedSyllableData.push(new SyllableData(1, range));
+        this.orderedSyllableData.push(new SyllableData(1, range, undefined));
         this.updateBracesInfosForSyllableRange(range);
     }
 
     exitTimeTaggedEmpty = (ctx : TimeTaggedEmptyContext) => {
         let range = this.terminalNodeToRange(ctx.UNDERSCORE());
-        this.orderedSyllableData.push(new SyllableData(this.numberTokenToNumber(ctx.NUMBER()), range));
+        let numberRange = this.terminalNodeToRange(ctx.NUMBER());
+        this.orderedSyllableData.push(new SyllableData(this.numberTokenToNumber(ctx.NUMBER()), range, numberRange));
         this.updateBracesInfosForSyllableRange(range);
     }
 
@@ -295,8 +300,8 @@ export class AnimationListener extends MotorMusicParserListener {
         }
     
 
-        let bracketsAnimationInfos = this.bracketsInfo.get(currentSyllable.range);
-        let parensAnimationInfos = this.parensInfo.get(currentSyllable.range);
+        let bracketsAnimationInfos = this.bracketsInfo.get(currentSyllable.syllable_range);
+        let parensAnimationInfos = this.parensInfo.get(currentSyllable.syllable_range);
 
         bracketsAnimationInfos.forEach(i => {
             i.gestureLocation = locationFromAccData(this.bracketsAccumData.get(i.cctx), this);
@@ -306,8 +311,11 @@ export class AnimationListener extends MotorMusicParserListener {
             i.gestureLocation = locationFromAccData(this.parensAccumData.get(i.rctx), this);
         })
 
-
-        return new AnimationInfo(currentSyllable.range, syllableLocation, bracketsAnimationInfos, parensAnimationInfos);
+        let currentSyllableRanges = [currentSyllable.syllable_range];
+        if (currentSyllable.number_range != undefined) {
+            currentSyllableRanges.push(currentSyllable.number_range);
+        }
+        return new AnimationInfo(currentSyllableRanges, syllableLocation, bracketsAnimationInfos, parensAnimationInfos);
     }
 	
 }

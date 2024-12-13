@@ -194,7 +194,7 @@ button.addEventListener('click', () => {
         areWeCurrentlyPlayingBack = false;
         return;
       }
-      let syllableRangeValues = animationInfo.currentSyllable;
+      let syllableRangeValues = animationInfo.currentSyllableRanges;
       let bracketInfos = animationInfo.bracketsInfo;
       let parenInfos = animationInfo.parensInfo;
      
@@ -204,12 +204,17 @@ button.addEventListener('click', () => {
       }
 
 
-      const syllableDecorationOptions = [{
-        range: fakeRangeToRange(syllableRangeValues),
-        options: {
-            inlineClassName: 'highlighted'
-        }
-      }];
+      //I tried to write a map here but it was being weird
+      const syllableDecorationOptions = [];
+      for (let range of syllableRangeValues) {
+        syllableDecorationOptions.push({
+          range: fakeRangeToRange(range),
+          options: {
+              inlineClassName: 'highlighted'
+          }
+        });
+      } 
+     
 
       var bracketDecorationOptions = [];
 
