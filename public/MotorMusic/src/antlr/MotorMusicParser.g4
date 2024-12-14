@@ -25,4 +25,5 @@ music:
   | number = NUMBER syllable = IDENT #TimeTaggedSyllable
   | LPAREN towards = music_list MID awayFrom = music_list RPAREN #Resolve
   | LCURLY awayFrom = music_list MID towards = music_list RCURLY #Concat
+  | LANGLE musics = music_list RANGLE #NeutralConcat
 ;

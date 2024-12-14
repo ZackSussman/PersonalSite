@@ -1,8 +1,8 @@
 
-/// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
-import MotorMusicParserListener from "../../antlr/generated/MotorMusicParserListener";
+/// <reference path="../../../node_modules/monaco-editor/monaco.d.ts" />
+import MotorMusicParserListener from "../../../antlr/generated/MotorMusicParserListener";
 //                                      context for {|}  context for (|)
-import { SyllableContext, EmptyContext, ConcatContext, ResolveContext, TimeTaggedEmptyContext, TimeTaggedSyllableContext} from "../../antlr/generated/MotorMusicParser";
+import { SyllableContext, EmptyContext, ConcatContext, ResolveContext, TimeTaggedEmptyContext, TimeTaggedSyllableContext} from "../../../antlr/generated/MotorMusicParser";
 import { TerminalNode } from "antlr4";
 
 //NOTE: this whole file references the {} symbol with the term 'bracket', () with 'parens', and a generalized term to refer to either as brace

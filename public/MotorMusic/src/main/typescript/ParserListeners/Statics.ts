@@ -1,7 +1,7 @@
 
-import {Error} from "./Compile";
+import {Error} from "../Compile";
 import {ParserRuleContext} from "antlr4";
-import MotorMusicParserListener from "../../antlr/generated/MotorMusicParserListener";
+import MotorMusicParserListener from "../../../antlr/generated/MotorMusicParserListener";
 
 //we have to check that the parse tree actually encompasses the entire code
 export class MotorMusicParserStaticAnalysisListener extends MotorMusicParserListener {

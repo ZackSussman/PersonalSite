@@ -29,17 +29,6 @@ function createParserFromLexer(lexer) {
 }
 
 
-export function parseTreeStr(input) {
-    const lexer = createLexer(input);
-    lexer.removeErrorListeners();
-    lexer.addErrorListener(new ConsoleErrorListener());
-    const parser = createParserFromLexer(lexer);
-    parser.removeErrorListeners();
-    parser.addErrorListener(new ConsoleErrorListener());
-    const tree = parser.compilationUnit();
-    return tree.toStringTree(parser.ruleNames, parser);
-}
-
 export class Error {
     startLine: number;
     endLine: number;
@@ -74,32 +63,34 @@ export class CollectorErrorListener extends ErrorListener<Token> {
 
 type animationFunction = (elapsedTime : number) => AnimationInfo
 
-//process involves two main steps
-//1) lex and parse to validate with static analysis and get parse tree
-//2) traverse parse tree to build animation functions
-//first outputs are the three animation functions, then at the end are any errors from static analysis
-//import {MusicContext, CompilationUnitContext} from "../../antlr/generated/MotorMusicParser";
-import {ParseTreeWalker} from "antlr4";
-import {MotorMusicParserStaticAnalysisListener} from "./Statics";
-import {AnimationListener, AnimationInfo} from "./Animations";
-export function process(input : string, syllableLength : number) : 
-    [animationFunction, Error[]] 
-    {
-    let errors : Error[] = []
+
+
+function parse(input : string, errors : Error[]) {
     const lexer = createLexer(input);
     lexer.removeErrorListeners();
     lexer.addErrorListener(new ConsoleErrorListener());
     const parser = createParserFromLexer(lexer);
     parser.removeErrorListeners();
     parser.addErrorListener(new CollectorErrorListener(errors));
-    const tree = parser.compilationUnit();
+    return parser.compilationUnit();
+}
+
+//We can hink of compilation as the process which morphs the code into the user experience 
+//this function is essentially the high level view of that entire process
+import {ParseTreeWalker} from "antlr4";
+import {MotorMusicParserStaticAnalysisListener} from "./ParserListeners/Statics";
+import {AnimationListener, AnimationInfo} from "./ParserListeners/Animations";
+export function process(input : string, syllableLength : number) : 
+    [animationFunction, Error[]] 
+    {
+    let errors : Error[] = [];
+    let tree = parse(input, errors)
     let staticAnalysisListener = new MotorMusicParserStaticAnalysisListener(input);
     ParseTreeWalker.DEFAULT.walk(staticAnalysisListener, tree);
     errors = errors.concat(staticAnalysisListener.errors);
     if (errors.length === 0) {
         let animationListener = new AnimationListener(syllableLength);
         ParseTreeWalker.DEFAULT.walk(animationListener, tree);
-
         function packageGetAnimationInfo(x : number) {
             return animationListener.getAnimationInfoForTime(x);
         }

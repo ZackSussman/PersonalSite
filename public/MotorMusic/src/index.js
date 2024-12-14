@@ -54,7 +54,9 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'number.MotorMusic', foreground: '#0075ff'},
       {token: 'ident.MotorMusic', foreground: '#0075ff'},
       {token: 'underscore.MotorMusic', foreground: '#0075ff'},
-      {token: 'unrecognized.MotorMusic', foreground: 'FF0000'}
+      {token: 'unrecognized.MotorMusic', foreground: 'FF0000'},
+      {token: 'langle.MotorMusic', foreground: '#8080B0'},
+      {token: 'rangle.MotorMusic', foreground: '#8080B0'}
     ]
 });
 
@@ -166,6 +168,22 @@ container.parentNode.insertBefore(button, container);
 
 // Add event listener to the button
 button.addEventListener('click', () => {
+
+  /*
+  console.log('audioworklet' in window.AudioContext.prototype) + "!!!";
+  //initiate audio
+  const audioContext = new window.AudioContext();
+  audioContext.resume();
+  audioContext.audioWorklet.addModule('Audio/Generators/Noise.js')
+  .then(() => {
+    const workletNode = new AudioWorkletNode(audioContext, 'Noise');
+    workletNode.parameters.get('gain').value = 0.5;
+    workletNode.connect(audioContext.destination);
+    audioContext.resume().then(() => {
+      console.log('Audio Context resumed, should play sound!');
+    })
+  });*/
+
   //don't allow click if we are currently playing back
   if (areWeCurrentlyPlayingBack) {
     return;
@@ -214,7 +232,8 @@ button.addEventListener('click', () => {
           }
         });
       } 
-     
+
+  
 
       var bracketDecorationOptions = [];
 
