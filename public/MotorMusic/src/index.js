@@ -167,27 +167,32 @@ const container = document.getElementById('container');
 container.parentNode.insertBefore(button, container);
 
 // Add event listener to the button
-button.addEventListener('click', () => {
-
-  /*
-  console.log('audioworklet' in window.AudioContext.prototype) + "!!!";
-  //initiate audio
-  const audioContext = new window.AudioContext();
-  audioContext.resume();
-  audioContext.audioWorklet.addModule('Audio/Generators/Noise.js')
-  .then(() => {
-    const workletNode = new AudioWorkletNode(audioContext, 'Noise');
-    workletNode.parameters.get('gain').value = 0.5;
-    workletNode.connect(audioContext.destination);
-    audioContext.resume().then(() => {
-      console.log('Audio Context resumed, should play sound!');
-    })
-  });*/
+button.addEventListener('click', async () => {
 
   //don't allow click if we are currently playing back
   if (areWeCurrentlyPlayingBack) {
     return;
   }
+
+  let audioContext = new AudioContext();
+  let processorNode;
+  try {
+    processorNode = new AudioWorkletNode(audioContext, "NoiseGenerator");
+  } catch (e) {
+    try {
+      console.log("adding...");
+      await audioContext.audioWorklet.addModule("src/audio/generators/NoiseGenerator.js");
+      processorNode = new AudioWorkletNode(audioContext, "NoiseGenerator", {
+        channelCount: 2,  // Force stereo output (2 channels)
+        channelCountMode: 'explicit',  // Ensure the node always has 2 channels
+        channelInterpretation: 'speakers',  // Ensures stereo output as expected
+      });
+    } catch (e) {
+      console.log(`** Error: Unable to create worklet node: ${e}`);
+    }
+  }
+  processorNode.connect(audioContext.destination);
+
 
   if (getAnimationInfoFunction === undefined) {
     consumeText();
@@ -210,6 +215,7 @@ button.addEventListener('click', () => {
         clearInterval(intervalId);
         decorationsCollection.clear();
         areWeCurrentlyPlayingBack = false;
+        processorNode.disconnect();
         return;
       }
       let syllableRangeValues = animationInfo.currentSyllableRanges;
