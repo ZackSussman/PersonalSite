@@ -63,16 +63,16 @@ monaco.editor.defineTheme('MotorMusicTheme', {
 
 const defaultCode = `(
     {
-        ({twin|kl} {twin|kl}  {li|tle} | {star|_ } )
-        ({how|i} {won|der}  {what|you} | {are|_ } )
-        ({up|a} {bove|the}  {world|so} | {high|_ } )
+        ({twin|kl} {twin|kl}  {li|tle} | 2star )
+        ({how|i} {won|der}  {what|you} | 2are )
+        ({up|a} {bove|the}  {world|so} | 2high )
       |
-        ({like|a} {dia|mond}  {in|the} | {sky|_ } )
+        ({like|a} {dia|mond}  {in|the} | 2sky )
     }
-        (twin kle twin kle li tl | star _ )
+        (twin kle twin kle li tl | 2star )
         how i won der what you 
 |
-    are
+    6are
 )`;
 
 let editor = monaco.editor.create(document.getElementById('container'), {
