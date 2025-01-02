@@ -121,10 +121,17 @@ var getAnimationInfoFunction = undefined;
 const syllableTime = 500; //milliseconds
 var areWeCurrentlyPlayingBack = false;
 
+//audio for the current code
+//stored as an array of arrays of arrays. 
+//[block1, block2, block3], where each blocki = [[left1, right1], [left2, right2], ...]
+var computedAudio = undefined;
+
 
 //parse, statics, report errors, construct animation functions
 function consumeText() {
-  let [retreivedGetAnimationInfoFunction,  errors] = process(editor.getModel().getValue(), syllableTime);
+  let [retreivedGetAnimationInfoFunction, retreivedComputedAudio, errors] = process(editor.getModel().getValue(), syllableTime);
+  computedAudio = retreivedComputedAudio;
+  console.log("we computed the audio: " + computedAudio.toString());
   getAnimationInfoFunction = retreivedGetAnimationInfoFunction;
   monaco.editor.setModelMarkers(editor.getModel(), 'owner',
      errors.map((error) => 
@@ -141,7 +148,7 @@ function consumeText() {
   );
 }
 
-import {process} from '../src/main/generated-javascript/main/typescript/Validate.js'
+import {process} from '../src/main/generated-javascript/main/typescript/Compile.js'
 editor.onDidChangeModelContent(consumeText);
 
 
@@ -174,25 +181,6 @@ button.addEventListener('click', async () => {
     return;
   }
 
-  let audioContext = new AudioContext();
-  let processorNode;
-  try {
-    processorNode = new AudioWorkletNode(audioContext, "NoiseGenerator");
-  } catch (e) {
-    try {
-      console.log("adding...");
-      await audioContext.audioWorklet.addModule("src/audio/generators/NoiseGenerator.js");
-      processorNode = new AudioWorkletNode(audioContext, "NoiseGenerator", {
-        channelCount: 2,  // Force stereo output (2 channels)
-        channelCountMode: 'explicit',  // Ensure the node always has 2 channels
-        channelInterpretation: 'speakers',  // Ensures stereo output as expected
-      });
-    } catch (e) {
-      console.log(`** Error: Unable to create worklet node: ${e}`);
-    }
-  }
-  processorNode.connect(audioContext.destination);
-
 
   if (getAnimationInfoFunction === undefined) {
     consumeText();
@@ -201,6 +189,32 @@ button.addEventListener('click', async () => {
       return;
     }
   }
+
+
+  let audioContext = new AudioContext();
+  let processorNode;
+  try {
+    processorNode = new AudioWorkletNode(audioContext, "AudioGenerator");
+  } catch (e) {
+    try {
+      const version = Date.now(); // Use a timestamp or unique version
+      await audioContext.audioWorklet.addModule(`src/audio/AudioGenerator.js?version=${version}`);
+      processorNode = new AudioWorkletNode(audioContext, "AudioGenerator", {
+        channelCount: 2,  // Force stereo output (2 channels)
+        channelCountMode: 'explicit',  // Ensure the node always has 2 channels
+        channelInterpretation: 'speakers',  // Ensures stereo output as expected
+        processorOptions: {
+          sampleArrays: computedAudio //replace with sample arrays given from typescript
+        }
+      });
+    } catch (e) {
+      console.log(`** Error: Unable to create worklet node: ${e}`);
+    }
+  }
+  processorNode.connect(audioContext.destination);
+
+
+
   
     // Create a decorations collection
     const decorationsCollection = editor.createDecorationsCollection();

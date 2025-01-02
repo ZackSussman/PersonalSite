@@ -80,8 +80,9 @@ function parse(input : string, errors : Error[]) {
 import {ParseTreeWalker} from "antlr4";
 import {MotorMusicParserStaticAnalysisListener} from "./ParserListeners/Statics";
 import {AnimationListener, AnimationInfo} from "./ParserListeners/Animations";
+import {AudioGeneratorListener, audioStream} from "./ParserListeners/AudioGeneratorListener";
 export function process(input : string, syllableLength : number) : 
-    [animationFunction, Error[]] 
+    [animationFunction, audioStream , Error[]] 
     {
     let errors : Error[] = [];
     let tree = parse(input, errors)
@@ -94,7 +95,12 @@ export function process(input : string, syllableLength : number) :
         function packageGetAnimationInfo(x : number) {
             return animationListener.getAnimationInfoForTime(x);
         }
-        return [packageGetAnimationInfo, errors];
+
+        let audioGeneratorListener = new AudioGeneratorListener(syllableLength);
+        ParseTreeWalker.DEFAULT.walk(audioGeneratorListener, tree);
+        
+
+        return [packageGetAnimationInfo, audioGeneratorListener.audioStream, errors];
     }
-    return [undefined, errors];
+    return [undefined, undefined, errors];
 }
