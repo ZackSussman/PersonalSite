@@ -23,12 +23,12 @@ export function applyAdsr(input : audio,
 
     return input.map((value : [number, number], index : number) => {
         if (index < attackNumSamples) {
-            let interp = index / attackNumSamples;
+            let interp = (index + 1)/attackNumSamples;
             return sampleMap(value, (sample : number) => sample * interp);
         }
         else if (index < attackNumSamples + decayNumSamples) {
             let decayIndex = index - attackNumSamples;
-            let interp = decayIndex / releaseNumSamples;
+            let interp = (decayIndex + 1) / decayNumSamples;
             return sampleMap(value, (sample : number) => (interp * sustain + (1.0 - interp)) * sample);
         }
         else if (index < attackNumSamples + decayNumSamples + sustainNumSamples ) {
@@ -36,7 +36,7 @@ export function applyAdsr(input : audio,
         }
         else {
             let releaseIndex = index - attackNumSamples - decayNumSamples - sustainNumSamples;
-            let interp = releaseIndex/releaseNumSamples;
+            let interp = (releaseIndex + 1)/releaseNumSamples;
             return sampleMap(value, (sample : number) => sustain * sample * (1.0 - interp));
         }
     });
