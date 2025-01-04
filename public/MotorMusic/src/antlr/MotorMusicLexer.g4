@@ -4,7 +4,7 @@ channels { WS_CHANNEL }
 
 WS: ('\r\n'+ | '\r'+ | '\n'+ | [ \t]+) -> channel(WS_CHANNEL);
 
-IDENT : [a-z/']+;
+SYLLABLE : [qtplkjgfdszxcvbnmhrw]+[aeiuyo]*[qtplkjgfdszxcvbnmhrw]* | [aeiuyo]+[qtplkjgfdszxcvbnmhrw]*;
 
 NUMBER : [0-9]+ | [0-9]+.[0-9]+ | '.'[0-9]+;
 

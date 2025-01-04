@@ -52,7 +52,7 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'rcurly1.MotorMusic', foreground: '6b90ff'},
       {token: 'rcurly2.MotorMusic', foreground: '#fe00ff'},
       {token: 'number.MotorMusic', foreground: '#0075ff'},
-      {token: 'ident.MotorMusic', foreground: '#0075ff'},
+      {token: 'syllable.MotorMusic', foreground: '#0075ff'},
       {token: 'underscore.MotorMusic', foreground: '#0075ff'},
       {token: 'unrecognized.MotorMusic', foreground: 'FF0000'},
       {token: 'langle.MotorMusic', foreground: '#8080B0'},
@@ -64,15 +64,15 @@ monaco.editor.defineTheme('MotorMusicTheme', {
 const defaultCode = `(
     {
         ({twin|kl} {twin|kl}  {li|tle} | 2star )
-        ({how|i} {won|der}  {what|you} | 2are )
-        ({up|a} {bove|the}  {world|so} | 2high )
+        ({how|i} {won|der}  {what|you} | 2arr )
+        ({up|a} {bovv|the}  {world|so} | 2hii )
       |
-        ({like|a} {dia|mond}  {in|the} | 2sky )
+        ({liek|a} {dia|mond}  {in|the} | 2skyy )
     }
         (twin kle twin kle li tl | 2star )
         how i won der what you 
 |
-    6are
+    6arr
 )`;
 
 let editor = monaco.editor.create(document.getElementById('container'), {

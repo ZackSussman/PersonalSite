@@ -173,14 +173,14 @@ export class AnimationListener extends MotorMusicParserListener {
     }
 
     exitSyllable = (ctx : SyllableContext) => {
-        const thisSyllableRange : range = this.terminalNodeToRange(ctx.IDENT());
+        const thisSyllableRange : range = this.terminalNodeToRange(ctx.SYLLABLE());
         //update list of syllables
 		this.orderedSyllableData.push(new SyllableData(1, thisSyllableRange, undefined));
         this.updateBracesInfosForSyllableRange(thisSyllableRange);
     }
 
     exitTimeTaggedSyllable = (ctx : TimeTaggedSyllableContext) => {
-        const thisSyllableRange : range = this.terminalNodeToRange(ctx.IDENT());
+        const thisSyllableRange : range = this.terminalNodeToRange(ctx.SYLLABLE());
         const thisNumberRange : range = this.terminalNodeToRange(ctx.NUMBER());
         this.orderedSyllableData.push(new SyllableData(this.numberTokenToNumber(ctx.NUMBER()), thisSyllableRange, thisNumberRange));
         this.updateBracesInfosForSyllableRange(thisSyllableRange);
