@@ -131,7 +131,6 @@ var computedAudio = undefined;
 function consumeText() {
   let [retreivedGetAnimationInfoFunction, retreivedComputedAudio, errors] = process(editor.getModel().getValue(), syllableTime);
   computedAudio = retreivedComputedAudio;
-  console.log("we computed the audio: " + computedAudio.toString());
   getAnimationInfoFunction = retreivedGetAnimationInfoFunction;
   monaco.editor.setModelMarkers(editor.getModel(), 'owner',
      errors.map((error) => 

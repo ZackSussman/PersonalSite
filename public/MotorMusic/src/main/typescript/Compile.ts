@@ -80,7 +80,8 @@ function parse(input : string, errors : Error[]) {
 import {ParseTreeWalker} from "antlr4";
 import {MotorMusicParserStaticAnalysisListener} from "./ParserListeners/Statics";
 import {AnimationListener, AnimationInfo} from "./ParserListeners/Animations";
-import {AudioGeneratorListener, audioStream} from "./ParserListeners/AudioGeneratorListener";
+import {AudioGeneratorListener} from "./ParserListeners/AudioGeneratorListener";
+import {audioStream} from "./audio/Audio";
 export function process(input : string, syllableLength : number) : 
     [animationFunction, audioStream , Error[]] 
     {
