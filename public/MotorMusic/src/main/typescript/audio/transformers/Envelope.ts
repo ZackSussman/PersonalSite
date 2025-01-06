@@ -2,11 +2,13 @@ import {audio, seconds, durationToSamples, sampleMap} from "../Audio"
 
 //applies an adsr to the signal
 //the sustain is from 0 to 1 and specifies how big the envelop should go
+//the exponent is used to curve the decay 
 export function applyAdsr(input : audio, 
                            attack : seconds,
                            decay : seconds, 
                            sustain : number, 
-                           release : seconds) : audio {
+                           release : seconds,
+                           exponent : number) : audio {
 
     let attackNumSamples = durationToSamples(attack);
     let decayNumSamples = durationToSamples(decay);
@@ -28,7 +30,7 @@ export function applyAdsr(input : audio,
         }
         else if (index < attackNumSamples + decayNumSamples) {
             let decayIndex = index - attackNumSamples;
-            let interp = (decayIndex + 1) / decayNumSamples;
+            let interp = Math.pow((decayIndex + 1) / decayNumSamples, exponent);
             return sampleMap(value, (sample : number) => (interp * sustain + (1.0 - interp)) * sample);
         }
         else if (index < attackNumSamples + decayNumSamples + sustainNumSamples ) {

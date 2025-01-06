@@ -67,7 +67,7 @@ export class AnimationInfo {
 //below the above line = classes forming data we store here to help form the data above the line
 
 //data we wish to accumulate for each brace during our parse tree
-class BraceAccumData {
+export class BraceAccumData {
     depth : number 
     firstSyllableIndex : number //the index of the first syllable within this brace
     lastSyllableIndex : number //the index of the last syllable within this brace
@@ -75,6 +75,10 @@ class BraceAccumData {
     constructor(depth : number, firstSyllableIndex : number) {
         this.depth = depth;
         this.firstSyllableIndex = firstSyllableIndex;
+    }
+
+    toString() {
+        return ("firstSyllable: " + this.firstSyllableIndex + "\n midIndex: " + this.midIndex + "\n lastSyllable: " + this.lastSyllableIndex);
     }
 }
 
@@ -90,7 +94,7 @@ class SyllableData {
     }
 };
 
-enum BraceType {
+export enum BraceType {
     Bracket,
     Paren
 }
