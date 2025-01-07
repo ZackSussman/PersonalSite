@@ -99,7 +99,6 @@ export function process(input : string, syllableLength : number) :
 
         let audioGeneratorListener = new AudioGeneratorListener(syllableLength, animationListener.bracketsAccumData, animationListener.parensAccumData);
         ParseTreeWalker.DEFAULT.walk(audioGeneratorListener, tree);
-        
 
         return [packageGetAnimationInfo, audioGeneratorListener.audioStream, errors];
     }

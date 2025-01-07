@@ -7,8 +7,10 @@ if (typeof window === 'undefined') {
     window.MotorMusicTokensProvider = MotorMusicTokensProvider;
 }
 
-
-
+//on load initialize dummmy audio context to ensure audio plays correctly
+const audioContext = new AudioContext();
+audioContext.resume();
+//-----------------------------------------
 
 
 monaco.languages.setTokensProvider('MotorMusic', new MotorMusicTokensProvider.MotorMusicTokensProvider());
@@ -129,6 +131,7 @@ var computedAudio = undefined;
 
 //parse, statics, report errors, construct animation functions
 function consumeText() {
+  areWeCurrentlyPlayingBack = false; //stop running if model contents changed
   let [retreivedGetAnimationInfoFunction, retreivedComputedAudio, errors] = process(editor.getModel().getValue(), syllableTime);
   computedAudio = retreivedComputedAudio;
   getAnimationInfoFunction = retreivedGetAnimationInfoFunction;
@@ -210,10 +213,23 @@ button.addEventListener('click', async () => {
       console.log(`** Error: Unable to create worklet node: ${e}`);
     }
   }
-  processorNode.connect(audioContext.destination);
+  const gainNode = audioContext.createGain();
+  processorNode.connect(gainNode).connect(audioContext.destination);
 
+  function fadeOutAudio() {
+    const fadeOutDuration = 0.1;
+    const currentTime = audioContext.currentTime;
 
+    // Schedule a smooth fade-out
+    gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime); // Set current gain
+    gainNode.gain.linearRampToValueAtTime(0, currentTime + fadeOutDuration);
 
+    // Disconnect the processorNode after the fade-out is complete
+    setTimeout(() => {
+        processorNode.disconnect();
+        gainNode.disconnect();
+    }, fadeOutDuration * 1000);
+  }
   
     // Create a decorations collection
     const decorationsCollection = editor.createDecorationsCollection();
@@ -222,6 +238,13 @@ button.addEventListener('click', async () => {
 
     var intervalId;
     function updateDecorations() {
+      //disable and exit if some other process decided we are no longer playing back
+      if (!areWeCurrentlyPlayingBack) {
+        clearInterval(intervalId);
+        decorationsCollection.clear();
+        fadeOutAudio();
+        return;
+      }
       const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
       let animationInfo = getAnimationInfoFunction(elapsedTime);
       if (animationInfo === undefined) {

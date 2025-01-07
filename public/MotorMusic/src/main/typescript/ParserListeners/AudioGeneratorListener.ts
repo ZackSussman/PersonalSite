@@ -128,14 +128,21 @@ export class AudioGeneratorListener extends MotorMusicParserListener {
     enterSyllable =  (_ : SyllableContext) => {
         let tension = this.getCurrentSyllableTension();
         let tensionLowerBound = this.computeTensionLowerBound();
-        let sinWave : audio = makeSin(map_unit_range_to_major_scale(tension/(1 - tensionLowerBound) - (tensionLowerBound/(1 - tensionLowerBound))), this.syllableLength);
+        let tensionRampedFromZeroToOne = 1; //this is the value if tensionLowerBound == 1
+        if (tensionLowerBound < 1)
+            tensionRampedFromZeroToOne = tension/(1 - tensionLowerBound) - (tensionLowerBound/(1 - tensionLowerBound));
+        let sinWave : audio = makeSin(map_unit_range_to_major_scale(tensionRampedFromZeroToOne), this.syllableLength);
         let attackTime = this.syllableLength / 10;
+        let decay =  (this.syllableLength - attackTime) * Math.pow(tensionRampedFromZeroToOne, 0.5);
+        if (decay < attackTime) {
+            decay = attackTime;
+        }
         let enveloped : audio = applyAdsr(sinWave, 
             attackTime,
-            (this.syllableLength - attackTime) * Math.pow(tension, 0.5),
+            decay,
             0,
             0,
-            .5 + 2*(1 - tension)
+            .5 + 2*(1 - tensionRampedFromZeroToOne) //exponent
         )
         this.addToAudio(
            enveloped.map((sample) => sampleMap(sample, (sample) => sample * Math.sqrt(tension)))
@@ -148,6 +155,12 @@ export class AudioGeneratorListener extends MotorMusicParserListener {
     exitTimeTaggedSyllable = (_ : TimeTaggedSyllableContext) => {
         this.currentSyllableIndex += 1;
     }
+    exitEmpty = ( _ : EmptyContext) => {
+        this.currentSyllableIndex += 1;
+    }
+    exitTimeTaggedEmpty = (_: TimeTaggedEmptyContext) => {
+        this.currentSyllableIndex += 1;
+    }
 
     enterTimeTaggedSyllable = (ctx : TimeTaggedSyllableContext) => {
         let tension = this.getCurrentSyllableTension();
@@ -155,16 +168,23 @@ export class AudioGeneratorListener extends MotorMusicParserListener {
         let attackTime = this.syllableLength * syllableLengthMultiplier / 10;
         let thisSyllableLength = this.syllableLength * syllableLengthMultiplier;
         let tensionLowerBound = this.computeTensionLowerBound();
+        let tensionRampedFromZeroToOne = 1;
+        if (tensionLowerBound < 1)
+            tensionRampedFromZeroToOne = tension/(1 - tensionLowerBound) - (tensionLowerBound/(1 - tensionLowerBound));
+    
+        let decay  = (thisSyllableLength - attackTime) * Math.pow(tensionRampedFromZeroToOne, 0.5);
+        if (decay < attackTime) {
+            decay = attackTime;
+        }
         this.addToAudio(
             applyAdsr
                 (
-
-                    makeSin(map_unit_range_to_major_scale(tension/(1 - tensionLowerBound) - (tensionLowerBound/(1 - tensionLowerBound))), thisSyllableLength),
+                    makeSin(map_unit_range_to_major_scale(tensionRampedFromZeroToOne), thisSyllableLength),
                     attackTime,
-                    (thisSyllableLength - attackTime) * Math.pow(tension, 0.5),
+                    decay,
                     0,
                     0,
-                    .5 + 2*(1 - tension)
+                    .5 + 2*(1 - tensionRampedFromZeroToOne) //exponent
                 ).map((sample) => sampleMap(sample, (sample) => sample * Math.sqrt(tension)))
         );
     }
