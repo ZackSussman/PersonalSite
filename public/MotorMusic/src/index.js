@@ -206,7 +206,7 @@ button.addEventListener('click', async () => {
         channelCountMode: 'explicit',  // Ensure the node always has 2 channels
         channelInterpretation: 'speakers',  // Ensures stereo output as expected
         processorOptions: {
-          sampleArrays: computedAudio //replace with sample arrays given from typescript
+          sampleArrays: computedAudio, //replace with sample arrays given from typescript
         }
       });
     } catch (e) {
@@ -251,7 +251,7 @@ button.addEventListener('click', async () => {
         clearInterval(intervalId);
         decorationsCollection.clear();
         areWeCurrentlyPlayingBack = false;
-        processorNode.disconnect();
+        fadeOutAudio();
         return;
       }
       let syllableRangeValues = animationInfo.currentSyllableRanges;
