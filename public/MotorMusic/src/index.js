@@ -7,9 +7,22 @@ if (typeof window === 'undefined') {
     window.MotorMusicTokensProvider = MotorMusicTokensProvider;
 }
 
-//on load initialize dummmy audio context to ensure audio plays correctly
-const audioContext = new AudioContext();
-audioContext.resume();
+
+let audioContext = null;
+
+function initializeAudioContext() {
+  if (!audioContext || audioContext.state === 'closed') {
+    audioContext = new AudioContext({ latencyHint: "interactive" });
+    audioContext.resume();
+    console.log("AudioContext created");
+  } else {
+    console.log("Reusing existing AudioContext");
+  }
+  return audioContext;
+}
+
+//audioContext.disconnect();
+//audioContext = null;
 //-----------------------------------------
 
 
@@ -192,8 +205,15 @@ button.addEventListener('click', async () => {
     }
   }
 
-
-  let audioContext = new AudioContext();
+  
+  let audioContext = initializeAudioContext();
+  let audioContextStartTime = Date.now();
+  try {
+    audioContext.resume();
+  } catch (error) {
+    console.log("UNABLE tO RESUME AUDIO CONTEXT: ", error)
+  }
+  console.log("the state of the audio context is " + audioContext.state);
   let processorNode;
   try {
     processorNode = new AudioWorkletNode(audioContext, "AudioGenerator");
@@ -226,16 +246,22 @@ button.addEventListener('click', async () => {
 
     // Disconnect the processorNode after the fade-out is complete
     setTimeout(() => {
+        console.log("number of inputs is " + audioContext.destination.numberOfInputs);
         processorNode.disconnect();
         gainNode.disconnect();
+        audioContext.close();
     }, fadeOutDuration * 1000);
   }
   
     // Create a decorations collection
     const decorationsCollection = editor.createDecorationsCollection();
      //perform animation
-    let startTime = Date.now();
-
+   let startTime = Date.now();
+   console.log("our start time is " + startTime);
+   console.log("audio context start time is " + audioContextStartTime);
+  // let startTime = audioContextStartTime;
+   //let delayToAccountForLatency = audioContextStartTime - startTime;
+   //console.log("using delay: " + delayToAccountForLatency);
     var intervalId;
     function updateDecorations() {
       //disable and exit if some other process decided we are no longer playing back
@@ -246,6 +272,10 @@ button.addEventListener('click', async () => {
         return;
       }
       const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
+      //console.log("elapsed time is " + elapsedTime);
+      //if (elapsedTime - delayToAccountForLatency < 0) {
+      //  return;
+      //}
       let animationInfo = getAnimationInfoFunction(elapsedTime);
       if (animationInfo === undefined) {
         clearInterval(intervalId);

@@ -4,9 +4,10 @@ class AudioGenerator extends AudioWorkletProcessor {
     constructor(options) {
         super();
         this.sampleArraysIndex = 0;
-        this.sampleArrays = options.processorOptions.sampleArrays;
+        this.sampleArrays = [...options.processorOptions.sampleArrays];
     }   
     process(inputs, outputs, parameters) {
+        //console.log("processing at " + currentTime);
         if (this.sampleArraysIndex >= this.sampleArrays.length) {
             for (let output of outputs) {
                 for (let i = 0; i < output[0].length; i++) {
