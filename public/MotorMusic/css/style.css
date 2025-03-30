@@ -71,11 +71,6 @@ h1 {
     margin-bottom: 20px;
     transition: all 0.2s ease; /* Smooth transition for size/color changes */
     scale: 130%;
-    /* Center the button */
-    position: absolute;
-    top: 20px; /* Adjust this value to position it as you like */
-    left: 50%; /* Move the button to the center */
-    transform: translateX(-50%); /* Adjust to exactly center it */
   }
   
   /* Hover style (optional) */
@@ -87,12 +82,110 @@ h1 {
   .action-button:active {
     background-color: #3e8e41;
     transform: scale(0.95); /* Shrink slightly for a "pressing" effect */
-
-    /* Center the button */
-    position: absolute;
-    top: 20px; /* Adjust this value to position it as you like */
-    left: 50%; /* Move the button to the center */
-    transform: translateX(-50%); /* Adjust to exactly center it */
   }
   
 
+  /* Container for button and slider */
+.header-container {
+  position: absolute;
+  top: 20px; /* Same top position as the button */
+  left: 50%; /* Center the whole header container */
+  transform: translateX(-50%); /* Perfectly center it */
+  display: flex; /* Align items in a row */
+  align-items: center; /* Vertically align items */
+  gap: 20px; /* Space between the button and slider */
+}
+
+/* Adjusting the slider container to not mess with alignment */
+#slider-container {
+  text-align: center;
+}
+
+/* Style the label text to be white */
+label {
+  color: white;
+  font-family: "Monaco", "Menlo", "Ubuntu Mono", "Consolas", "source-code-pro", monospace;
+  font-size: 16px; /* Adjust the size as needed */
+  margin-right: 10px;
+}
+
+/* Style the value display */
+#syllable-time-value {
+  color: white;
+  font-size: 16px;
+  margin-left: 6px; /* Reduced the margin to a small gap */
+}
+
+/* Customize the slider */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 300px;
+  height: 8px;
+  background: #555; /* Darker background for the track */
+  border-radius: 5px;
+  outline: none;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+/* Track on hover */
+input[type="range"]:hover {
+  opacity: 1;
+}
+
+/* Customize the thumb (the slider handle) */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 10px;
+  height: 20px;
+  border-radius: 5%;
+  background-color: #f39c12; /* Vibrant color */
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background-color: #e67e22; /* Slightly darker on hover */
+}
+
+/* Firefox */
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background-color: #f39c12;
+  cursor: pointer;
+}
+
+/* Slider styling */
+#syllable-time-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 80px; /* Adjust the width as needed */
+  height: 6px;
+  background: #ddd;
+  outline: none;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+  border-radius: 3px;
+}
+
+/* Change the thumb color and style */
+#syllable-time-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 5px;
+  height: 20px;
+  background-color: #82c484;
+  transition: background-color 0.2s;
+  border-radius: 20%;
+}
+
+#syllable-time-slider::-webkit-slider-thumb:hover {
+  background-color: #45a049;
+}
+
+#syllable-time-slider:active::-webkit-slider-thumb {
+  background-color: #3e8e41;
+}
