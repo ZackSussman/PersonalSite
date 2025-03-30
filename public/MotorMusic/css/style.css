@@ -71,6 +71,7 @@ h1 {
     margin-bottom: 20px;
     transition: all 0.2s ease; /* Smooth transition for size/color changes */
     scale: 130%;
+    transform: translateY(18%); /* Perfectly center it */
   }
   
   /* Hover style (optional) */
