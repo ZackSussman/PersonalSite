@@ -133,8 +133,54 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
 //RUNTIME DATA--------------------------------
 //as a function of time, will specify the range of syllables to highlight 
 var getAnimationInfoFunction = undefined;
-const syllableTime = 500; //milliseconds
+var syllableTime = 500; //milliseconds
 var areWeCurrentlyPlayingBack = false;
+
+
+
+// Function to create the slider and display the value
+function createSyllableTimeSlider() {
+  const sliderContainer = document.getElementById("slider-container");
+
+  // Create the slider element
+  const slider = document.createElement("input");
+  slider.type = "range";
+  slider.min = "100";    // Minimum syllable time
+  slider.max = "2000";   // Maximum syllable time
+  slider.value = syllableTime; // Start at the current syllable time
+  slider.id = "syllable-time-slider";
+
+  // Create a label to display the current value
+  const label = document.createElement("label");
+  label.htmlFor = "syllable-time-slider";
+  label.id = "syllable-time-label";
+  label.textContent = `Syllable Time:`;
+
+  // Create a span to display the actual value, and append it directly to the label
+  const valueDisplay = document.createElement("span");
+  valueDisplay.id = "syllable-time-value";
+  valueDisplay.textContent = `${syllableTime} ms`;
+  label.appendChild(valueDisplay);
+
+  // Update the syllable time when the slider is moved
+  slider.addEventListener("input", (event) => {
+      syllableTime = parseInt(event.target.value, 10);
+      valueDisplay.textContent = `${syllableTime} ms`;
+  });
+
+   // Add the callback to be called when the mouse is released, this is when we recompute audio and animatino times
+  slider.addEventListener("change", () => {
+    consumeText();
+  });
+
+  // Clear existing content and add the label, value display, and slider
+  sliderContainer.innerHTML = "";
+  sliderContainer.appendChild(label);
+  sliderContainer.appendChild(slider);
+}
+
+// Call the function to add the slider on page load
+createSyllableTimeSlider();
 
 //audio for the current code
 //stored as an array of arrays of arrays. 
@@ -172,6 +218,7 @@ const button = document.createElement('button');
 button.innerText = 'run';
 button.id = 'run-button';
 
+/*
 // Add styles to the button (optional)
 button.style.padding = '10px 20px';
 button.style.backgroundColor = '#4CAF50';
@@ -181,12 +228,13 @@ button.style.borderRadius = '5px';
 button.style.cursor = 'pointer';
 button.style.fontSize = '16px';
 button.style.marginBottom = '20px';
+*/
 
 button.className = 'action-button';
 
-// Add the button to the DOM (before the editor container)
-const container = document.getElementById('container');
-container.parentNode.insertBefore(button, container);
+// Append the button to the header container
+const headerContainer = document.querySelector('.header-container');
+headerContainer.appendChild(button);
 
 // Add event listener to the button
 button.addEventListener('click', async () => {

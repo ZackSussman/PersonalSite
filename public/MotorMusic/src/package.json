@@ -11,6 +11,7 @@
         "monaco-editor": "^0.40.0"
     },
     "devDependencies": {
+        "@types/web": "^0.0.187",
         "css-loader": "6.8.1",
         "monaco-editor-webpack-plugin": "7.0.1",
         "serve": "^6.5.8",
@@ -22,7 +23,7 @@
     "main": "index.js",
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
-        "build": "cd main && tsc && cd .. && npx webpack --config webpack.config.cjs && cd .. && python3 -m http.server"
+        "build": "cd main && tsc && cd .. && npx webpack --config webpack.config.cjs && cd .. && python3 server/run_server.py"
     },
     "keywords": [],
     "license": "ISC",
