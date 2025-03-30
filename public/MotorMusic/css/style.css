@@ -113,7 +113,10 @@ label {
 #syllable-time-value {
   color: white;
   font-size: 16px;
-  margin-left: 6px; /* Reduced the margin to a small gap */
+  margin-left: 2px; /* Reduced the margin to a small gap */
+  width: 70px;
+  text-align: center;
+  display: inline-block;
 }
 
 /* Customize the slider */
