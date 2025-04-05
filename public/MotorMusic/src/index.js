@@ -14,9 +14,9 @@ function initializeAudioContext() {
   if (!audioContext || audioContext.state === 'closed') {
     audioContext = new AudioContext({ latencyHint: "interactive" });
     audioContext.resume();
-    console.log("AudioContext created");
+   // console.log("AudioContext created");
   } else {
-    console.log("Reusing existing AudioContext");
+   // console.log("Reusing existing AudioContext");
   }
   return audioContext;
 }
@@ -54,12 +54,6 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'rparen2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
       {token: 'lparen0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
       {token: 'rparen0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
-      {token: 'mid0.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
-      {token: 'mid1.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
-      {token: 'mid2.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
-      {token: 'midp1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
-      {token: 'midp2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
-      {token: 'midp0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
       {token: 'lcurly0.MotorMusic', foreground: '#1ca182'},
       {token: 'lcurly1.MotorMusic', foreground: '#6b90ff'},
       {token: 'lcurly2.MotorMusic', foreground: '#fe00ff'},
@@ -71,22 +65,30 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'underscore.MotorMusic', foreground: '#0075ff'},
       {token: 'unrecognized.MotorMusic', foreground: 'FF0000'},
       {token: 'langle.MotorMusic', foreground: '#8080B0'},
-      {token: 'rangle.MotorMusic', foreground: '#8080B0'}
+      {token: 'rangle.MotorMusic', foreground: '#8080B0'},
+      {token: 'dotp1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
+      {token: 'dotp2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
+      {token: 'dotp0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
+      {token: 'overlinep1.MotorMusic', foreground: '#1ca182', fontStyle: 'bold'},
+      {token: 'overlinep2.MotorMusic', foreground: '#6b90ff', fontStyle: 'bold'},
+      {token: 'overlinep0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
     ]
 });
 
 
+
+
 const defaultCode = `(
-    {
-        ({twin|kl} {twin|kl}  {li|tle} | 2star )
-        ({how|i} {won|der}  {what|you} | 2arr )
-        ({up|a} {bovv|the}  {world|so} | 2hii )
-      |
-        ({liek|a} {dia|mond}  {in|the} | 2skyy )
-    }
-        (twin kle twin kle li tl | 2star )
-        how i won der what you 
-|
+    (
+        ((twin ‾ kl . twin ‾ kl . li ‾ tle) . 2star )
+        ((how ‾ i .  won ‾ der .  what ‾ you) . 2arr )
+        ((up ‾ a . bovv ‾ the .  world ‾ so) . 2hii )
+      ‾
+        ((liek ‾ a . dia ‾ mond . in ‾ the) . 2skyy )
+    )
+    (twin kle twin kle li tl . 2star )
+    how i won der what you 
+.
     6arr
 )`;
 
@@ -108,6 +110,25 @@ let editor = monaco.editor.create(document.getElementById('container'), {
     smoothScrolling: false       
 });
 
+
+editor.addCommand(
+  monaco.KeyMod.CtrlCmd | monaco.KeyCode.UpArrow,
+  () => {
+    const position = editor.getPosition();
+    const specialChar = '‾';
+
+    editor.executeEdits('', [
+      {
+        range: new monaco.Range(position.lineNumber, position.column, position.lineNumber, position.column),
+        text: specialChar,
+        forceMoveMarkers: true
+      }
+    ]);
+
+    editor.focus(); // Make sure focus remains
+  }
+);
+
 editor.layout();
 
 monaco.languages.setLanguageConfiguration('MotorMusic', {
@@ -117,16 +138,10 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
        ['(', ')']
    ],*/
    autoClosingPairs: [
-       { open: '{', close: '| }' },
-       { open: '[', close: ']' },
-       { open: '(', close: '| )' },
-       {open: '<', close: '>'}
+       { open: '(', close: ' )' },
    ],
    surroundingPairs: [
-       { open: '{', close: '}' },
-       { open: '[', close: ']' },
        { open: '(', close: ')' },
-       {open : '<', close: '>'}
    ]
 });
 
@@ -261,8 +276,10 @@ button.addEventListener('click', async () => {
   } catch (error) {
     console.log("UNABLE tO RESUME AUDIO CONTEXT: ", error)
   }
-  console.log("the state of the audio context is " + audioContext.state);
+  //("the state of the audio context is " + audioContext.state);
   let processorNode;
+ 
+  /*
   try {
     processorNode = new AudioWorkletNode(audioContext, "AudioGenerator");
   } catch (e) {
@@ -282,7 +299,7 @@ button.addEventListener('click', async () => {
     }
   }
   const gainNode = audioContext.createGain();
-  processorNode.connect(gainNode).connect(audioContext.destination);
+  processorNode.connect(gainNode).connect(audioContext.destination);*/
 
   function fadeOutAudio() {
     const fadeOutDuration = 0.1;
@@ -294,7 +311,7 @@ button.addEventListener('click', async () => {
 
     // Disconnect the processorNode after the fade-out is complete
     setTimeout(() => {
-        console.log("number of inputs is " + audioContext.destination.numberOfInputs);
+      //  console.log("number of inputs is " + audioContext.destination.numberOfInputs);
         processorNode.disconnect();
         gainNode.disconnect();
         audioContext.close();
@@ -305,8 +322,8 @@ button.addEventListener('click', async () => {
     const decorationsCollection = editor.createDecorationsCollection();
      //perform animation
    let startTime = Date.now();
-   console.log("our start time is " + startTime);
-   console.log("audio context start time is " + audioContextStartTime);
+  //("our start time is " + startTime);
+  // console.log("audio context start time is " + audioContextStartTime);
   // let startTime = audioContextStartTime;
    //let delayToAccountForLatency = audioContextStartTime - startTime;
    //console.log("using delay: " + delayToAccountForLatency);
@@ -316,7 +333,7 @@ button.addEventListener('click', async () => {
       if (!areWeCurrentlyPlayingBack) {
         clearInterval(intervalId);
         decorationsCollection.clear();
-        fadeOutAudio();
+        //fadeOutAudio();
         return;
       }
       const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
@@ -329,11 +346,10 @@ button.addEventListener('click', async () => {
         clearInterval(intervalId);
         decorationsCollection.clear();
         areWeCurrentlyPlayingBack = false;
-        fadeOutAudio();
+        //fadeOutAudio();
         return;
       }
       let syllableRangeValues = animationInfo.currentSyllableRanges;
-      let bracketInfos = animationInfo.bracketsInfo;
       let parenInfos = animationInfo.parensInfo;
      
       //we had constructed ranges in our typescript as a 4 tupule, now we can create an actual range from it
@@ -419,64 +435,10 @@ button.addEventListener('click', async () => {
 
       updateCss("highlighted", morphColors( "#0075ff" , "#42D6FF", Math.pow(Math.sin(Math.PI * animationInfo.currentSyllableLocation), .33)));
 
-      bracketInfos.forEach(bracketInfo => {
-        let leftSide = bracketInfo.gestureLocation.leftSide;
-        let amount = bracketInfo.gestureLocation.amount;
-
-        function bracketIndexToInitialColor(bracketIndex) {
-          let index = bracketIndex % 3;
-          if (index === 0) {
-            return "#1ca182"
-          }
-          else if (index === 1) {
-            return "#6b90ff"
-          }
-          else {
-            //assert(index === 2)
-            return "#fe00ff"
-          }
-        }
-
-        //retreive color from amount
-        let color
-        if (leftSide) {
-          //when amount is 0, we are all the way at the left and want to be white...
-          //on the other hand, when amount is 1, we have reached the middle and want to be initial color
-          color = morphColors(bracketIndexToInitialColor(bracketInfo.depth), "#FFFFFF", 1 - amount);
-        }
-        else {
-          //on RHS, a 1 means we have reached the end and want to be white again, while a 0 means that we just started from | 
-          //and want to be roughly the same color
-          color = morphColors(bracketIndexToInitialColor(bracketInfo.depth), "#FFFFFF", amount);
-        }
-        let className = 'bracketHighlight' + (bracketInfo.depth % 3);
-
-        updateCss(className, color);
-
-        bracketDecorationOptions.push({
-          range: fakeRangeToRange(bracketInfo.openBraceRange),
-          options: {
-            inlineClassName : className
-          }
-        });
-        bracketDecorationOptions.push({
-          range: fakeRangeToRange(bracketInfo.closeBraceRange),
-          options: {
-            inlineClassName : className
-          }
-        });
-        bracketDecorationOptions.push({
-          range: fakeRangeToRange(bracketInfo.midRange),
-          options: {
-            inlineClassName : className
-          }
-        })
-      })
-
       parenInfos.forEach(parenInfo => {
-        let leftSide = parenInfo.gestureLocation.leftSide;
-        let amount = parenInfo.gestureLocation.amount;
-        
+        let section = parenInfo.currentLocation.section;
+        let amount = parenInfo.currentLocation.amount;
+        let startsWithTowards = parenInfo.startsWithTowards;
 
         function parenIndexToInitialColor(parenIndex) {
           let index = parenIndex % 3;
@@ -492,43 +454,47 @@ button.addEventListener('click', async () => {
           }
         }
 
-
-
         let className = 'parenHighlight' + (parenInfo.depth % 3);
 
-
+       // console.log(amount);
         let color
-        if (leftSide) {
-          //for parens, we are white in the middle (1 for left), and normal in the beginning
+        if (startsWithTowards && section % 2 == 0
+                              ||
+            !startsWithTowards && section % 2 == 1
+        ) {
+          //even indexed sections with starting with towards must go from normal to white
+          //odd indexed sections with starting from away from must do the same
           color = morphColors(parenIndexToInitialColor(parenInfo.depth), "#FFFFFF", amount);
         }
         else {
-          //while on RHS of paren, we start at full white and end back at normal color
+          //all other scenarios will morph from white to normal
           color = morphColors(parenIndexToInitialColor(parenInfo.depth), "#FFFFFF", 1 - amount);
         }
-
 
         updateCss(className, color);
 
         bracketDecorationOptions.push({
-          range: fakeRangeToRange(parenInfo.openBraceRange),
+          range: fakeRangeToRange(parenInfo.openParenRange),
           options: {
             inlineClassName : className
           }
         });
         bracketDecorationOptions.push({
-          range: fakeRangeToRange(parenInfo.closeBraceRange),
+          range: fakeRangeToRange(parenInfo.closeParenRange),
           options: {
             inlineClassName : className
           }
         });
-        bracketDecorationOptions.push({
-          range: fakeRangeToRange(parenInfo.midRange),
-          options: {
-            inlineClassName : className
-          }
+        parenInfo.directionIndicatorRanges.forEach(r => {
+          bracketDecorationOptions.push({
+            range: fakeRangeToRange(r),
+            options: {
+              inlineClassName : className
+            }
+          })
         })
-      })
+        })
+      
 
         // Add the decoration to the collection
         decorationsCollection.set(syllableDecorationOptions.concat(bracketDecorationOptions));

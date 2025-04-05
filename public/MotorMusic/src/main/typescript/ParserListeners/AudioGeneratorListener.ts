@@ -3,7 +3,7 @@
 /// <reference path="../../../node_modules/monaco-editor/monaco.d.ts" />
 import MotorMusicParserListener from "../../../antlr/generated/MotorMusicParserListener";
 
-import {EmptyProgramContext, NonEmptyProgramContext, SyllableContext, TimeTaggedEmptyContext, TimeTaggedSyllableContext, EmptyContext, ConcatContext, ResolveContext} from "../../../antlr/generated/MotorMusicParser";
+import {EmptyProgramContext, NonEmptyProgramContext, SyllableContext, TimeTaggedEmptyContext, TimeTaggedSyllableContext, EmptyContext, DirectionSpecContext} from "../../../antlr/generated/MotorMusicParser";
 
 
 import {audio, audioStream, audioToAudioStream, silence, seconds, sampleMap} from "../audio/Audio";
@@ -28,35 +28,32 @@ export class AudioGeneratorListener extends MotorMusicParserListener {
 
     //bracketsAccumData and parensAccumData are passed in from the animation parsing, they
     //store valuable info that allow ur to compute amplitudes for our signals
-    bracketsAccumData : Map<ConcatContext, BraceAccumData>
-    parensAccumData : Map<ResolveContext, BraceAccumData>
+    //bracketsAccumData : Map<ConcatContext, BraceAccumData>
+    parensAccumData : Map<DirectionSpecContext, BraceAccumData>
 
     //store the set of current braces that are in scope
-    currentBracketsInScope : ConcatContext[]
-    currentParensInScope : ResolveContext[]
+    currentParensInScope : DirectionSpecContext[]
 
 
     currentSyllableIndex : number //store the (global) index of the current syllable
 
     constructor(syllableLength : number, 
-                bracketsAccumData : Map<ConcatContext, BraceAccumData>, 
-                parensAccumData : Map<ResolveContext, BraceAccumData>) {
+                parensAccumData : Map<DirectionSpecContext, BraceAccumData>) {
         super();
         this.syllableLength = syllableLength / 1000; //syllableLength on input is in milliseconds 
         this.audio = [];
-        this.bracketsAccumData = bracketsAccumData;
         this.parensAccumData = parensAccumData;
-        this.currentBracketsInScope = [];
         this.currentParensInScope = [];
         this.currentSyllableIndex = 0;
     }
 
 
     private computeTensionLowerBound() {
-        return Math.pow(0.5, this.currentBracketsInScope.length + this.currentParensInScope.length);
+        return Math.pow(0.5, this.currentParensInScope.length);
     }
 
 
+    /*
     //this algorithm is particularly tricky to get right...we essentially have two types of 
     //linear 'triangle' curves each with a particular displacement from the center line. 
     //case 1: 
@@ -101,6 +98,7 @@ export class AudioGeneratorListener extends MotorMusicParserListener {
        // console.log("computed tension: " + tension);
         return tension
     }
+    */
 
     //use this, which is O(|a|) for linear audio generation
     addToAudio(a : audio) {
@@ -109,24 +107,19 @@ export class AudioGeneratorListener extends MotorMusicParserListener {
         }
     }
 
-    enterConcat = (ctx: ConcatContext) => {
-        this.currentBracketsInScope.push(ctx);
-    }
-    exitConcat = (_ : ConcatContext) => {
-        this.currentBracketsInScope.pop();
-    } 
-
-    enterResolve = (ctx: ResolveContext) => {
+    enterDirectionSpec = (ctx: DirectionSpecContext) => {
         this.currentParensInScope.push(ctx);
     }
-    exitResolve = (_: ResolveContext) => {
+
+    exitDirectionSpec = (_: DirectionSpecContext) => {
         this.currentParensInScope.pop();
     }
     
 
     //construct the audio for a syllable and add to our built up audio
     enterSyllable =  (_ : SyllableContext) => {
-        let tension = this.getCurrentSyllableTension();
+       // let tension = this.getCurrentSyllableTension();
+        let tension = 0;
         let tensionLowerBound = this.computeTensionLowerBound();
         let tensionRampedFromZeroToOne = 1; //this is the value if tensionLowerBound == 1
         if (tensionLowerBound < 1)
@@ -163,7 +156,8 @@ export class AudioGeneratorListener extends MotorMusicParserListener {
     }
 
     enterTimeTaggedSyllable = (ctx : TimeTaggedSyllableContext) => {
-        let tension = this.getCurrentSyllableTension();
+      //  let tension = this.getCurrentSyllableTension();
+        let tension = 0;
         let syllableLengthMultiplier = Number(ctx.NUMBER().getText());
         let attackTime = this.syllableLength * syllableLengthMultiplier / 10;
         let thisSyllableLength = this.syllableLength * syllableLengthMultiplier;
