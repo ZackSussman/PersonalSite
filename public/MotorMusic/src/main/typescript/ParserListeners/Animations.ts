@@ -280,7 +280,6 @@ export class AnimationListener extends MotorMusicParserListener {
             if (sectionIndex < 0) {
                 throw new Error("Invariant broken: syllable index does not lie within syllable start indices. Index is " + thisSyllableIndex + ", indices are " + accData.sectionStartIndices);
             }
-            console.log(accData.sectionStartIndices);
             //now we must compute the amount through that section that we are 
             let totalTimeWithinThisSection = this_.syllableRangeToTimeLength(accData.sectionStartIndices[sectionIndex], accData.sectionStartIndices[sectionIndex + 1] - accData.sectionStartIndices[sectionIndex]);
             let totalTimeSoFarWithinThisSection = elapsedTime - this_.syllableRangeToTimeLength(0, accData.sectionStartIndices[sectionIndex]);

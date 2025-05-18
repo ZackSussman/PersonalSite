@@ -40,22 +40,36 @@ export function killAnimationPlayback() {
 
 //util functions for animating------------------------------------
 
-function cleanHex(c) {
-    // Ensure hexColor is valid and remove the "#" if present
-    const cleanHex = c.startsWith("#") ? c.slice(1) : c;
-    if (!/^[0-9A-Fa-f]{6}$/.test(cleanHex)) {
-      throw new Error("Invalid hex color format.");
-    }
-    return cleanHex;
-}
 
-function rgbFromCleaned(cleaned) {
-    // Parse the hex color into RGB components
-    return {
-      r: parseInt(cleanHex(cleaned).slice(0, 2), 16),
-      g: parseInt(cleanHex(cleaned).slice(2, 4), 16),
-      b: parseInt(cleaned.slice(4, 6), 16)
+function morphToWhite(initialColor, amount) {
+    // Clean hex color: removes "#" and ensures it's 6 chars
+    function cleanHex(hex) {
+        return hex.replace(/^#/, "").padEnd(6, "0").slice(0, 6);
     }
+
+    // Convert cleaned hex to RGB
+    function rgbFromCleaned(hex) {
+        return {
+            r: parseInt(hex.slice(0, 2), 16),
+            g: parseInt(hex.slice(2, 4), 16),
+            b: parseInt(hex.slice(4, 6), 16)
+        };
+    }
+
+    // Convert number 0–255 to two-digit hex
+    function toHex(value) {
+        return value.toString(16).padStart(2, "0").toUpperCase();
+    }
+
+    const cleanedInitial = rgbFromCleaned(cleanHex(initialColor));
+
+    // White is {r: 255, g: 255, b: 255}
+    const newR = Math.round(cleanedInitial.r + amount * (255 - cleanedInitial.r));
+    const newG = Math.round(cleanedInitial.g + amount * (255 - cleanedInitial.g));
+    const newB = Math.round(cleanedInitial.b + amount * (255 - cleanedInitial.b));
+
+    // Convert to hex string
+    return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
 }
 
 import * as monaco from 'monaco-editor';
@@ -144,7 +158,6 @@ function alterColors(editor, document, colorsToSet) {
                 decorationsToRemove.push(currentColorRuleId); 
             }
             else {
-                console.log("skipping range: " + range);
                 //current color is the correct color, so we can move on to the next rule
                 continue;
             }
@@ -157,128 +170,96 @@ function alterColors(editor, document, colorsToSet) {
             range: fakeRangeToRange(deserializeRange(range)),
             options: { inlineClassName: classNameForNewColor }
         }]);
-        console.log("we just set the range " + range + " to the color class name " + classNameForNewColor);
         currentColors.set(range, [colorToSet, thisUpdateId]);
     } 
 }
 
-/*
-export function initiateAnimationPlayback(editor, document) {
-    startTime = Date.now();
-    decorationsCollection = editor.createDecorationsCollection();
-    function updateDecorations() {
-      const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
-      
-      let animationInfo = getAnimationInfoFunction(elapsedTime);
-      //it gives back undefined once elapside time has gone above what there is actual animation for 
-      if (animationInfo === undefined) {
-        clearInterval(intervalId);
-        decorationsCollection.clear();
-        areWeCurrentlyPlayingBack = false;
+import { serializeRange } from '../../generated-javascript/main/typescript/ParserListeners/ParserListenerUtils';
+//initialColorStateMap is the map of initial colors of the program state before animation begins, mapping ranges to their baseline colors
+export function initiateAnimation(editor, document, initialColorStateMap) {
+    if (areWeCurrentlyPlayingBack) {
+        //don't restart if we are in the middle of playing
         return;
-      }
-
-      let syllableRangeValues = animationInfo.currentSyllableRanges;
-      let parenInfos = animationInfo.parensInfo;
-     
-
-
-      //I tried to write a map here but it was being weird
-      const syllableDecorationOptions = [];
-      for (let range of syllableRangeValues) {
-        syllableDecorationOptions.push({
-          range: fakeRangeToRange(range),
-          options: {
-              inlineClassName: 'highlighted'
-          }
-        });
-      } 
-
-        var bracketDecorationOptions = [];
-
-        //square for a tighter animation
-        factor = factor * factor;
-
-        let cleanedInitial = rgbFromCleaned(cleanHex(initialColor));
-        let cleanedFinal = rgbFromCleaned(cleanHex(finalColor));
-        // Interpolate each channel towards white (255)
-        const newR = Math.round(cleanedInitial.r + factor * (cleanedFinal.r - cleanedInitial.r));
-        const newG = Math.round(cleanedInitial.g + factor * (cleanedFinal.g - cleanedInitial.g));
-        const newB = Math.round(cleanedInitial.b + factor * (cleanedFinal.b - cleanedInitial.b));
-        // Convert the new RGB values back to hex and return
-        const toHex = (value) => value.toString(16).padStart(2, "0").toUpperCase();
-        return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
-      }
-
-
-      function updateCss(className, color) {
-        //update css with computed color
-        let stylesheet = document.styleSheets[0];
-        let ruleIndex = Array.from(stylesheet.cssRules).findIndex(rule => {
-            return rule.selectorText.includes(className)});
-        if (ruleIndex === -1) {
-          console.log("error: couldn't find rule index for updating css");
-          return;
-        }
-        stylesheet.cssRules[ruleIndex].style.color = color;
-      }
-
-      updateCss("highlighted", morphColors( "#0075ff" , "#42D6FF", Math.pow(Math.sin(Math.PI * animationInfo.currentSyllableLocation), .33)));
-
-      parenInfos.forEach(parenInfo => {
-        let section = parenInfo.currentLocation.section;
-        let amount = parenInfo.currentLocation.amount;
-        let startsWithTowards = parenInfo.startsWithTowards;
-
-        let className = 'parenHighlight' + (parenInfo.depth % 3);
-
-       // console.log(amount);
-        let color
-        if (startsWithTowards && section % 2 == 0
-                              ||
-            !startsWithTowards && section % 2 == 1
-        ) {
-          //even indexed sections with starting with towards must go from normal to white
-          //odd indexed sections with starting from away from must do the same
-          color = morphColors(parenIndexToInitialColor(parenInfo.depth), "#FFFFFF", amount);
-        }
-        else {
-          //all other scenarios will morph from white to normal
-          color = morphColors(parenIndexToInitialColor(parenInfo.depth), "#FFFFFF", 1 - amount);
-        }
-
-        updateCss(className, color);
-
-        bracketDecorationOptions.push({
-          range: fakeRangeToRange(parenInfo.openParenRange),
-          options: {
-            inlineClassName : className
-          }
-        });
-        bracketDecorationOptions.push({
-          range: fakeRangeToRange(parenInfo.closeParenRange),
-          options: {
-            inlineClassName : className
-          }
-        });
-        parenInfo.directionIndicatorRanges.forEach(r => {
-          bracketDecorationOptions.push({
-            range: fakeRangeToRange(r),
-            options: {
-              inlineClassName : className
-            }
-          })
-        })
-        })
-      
-
-        // Add the decoration to the collection
-        decorationsCollection.set(syllableDecorationOptions.concat(bracketDecorationOptions));
-    
-      
     }
 
-    intervalId = setInterval(updateDecorations, actualFrameDuration);
+    startTime = Date.now();
+
+    //the runtime logic of the animation...this function will get called from an interval and its job is to continually
+    //update the colors based on the computed animation function 
+    function animationRuntime() {
+        const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
+      
+        let animationInfo = getAnimationInfoFunction(elapsedTime);
+        //it gives back undefined once elapside time has gone above what there is actual animation for 
+        if (animationInfo === undefined) {
+            clearInterval(intervalId);
+            //repaintColors(editor, document, initialColorStateMap);
+            areWeCurrentlyPlayingBack = false;
+            return;
+        }
+
+        /*we must compute the color for each object in the current animation info and add all the data to a map
+        then, we will send it into our alterColors function 
+           
+            we a series of colors to compute:
+               1) the color of the current syllable
+               2-n) the colors of all of the enclosing containers
+
+        for each of the colors above, we must find all the ranges and add them into our color map 
+        */
+        let colorsToSet = new Map();
+        let syllableRangeValues = animationInfo.currentSyllableRanges;
+        let parenInfos = animationInfo.parensInfo;
+       
+        //1--------------------- syllable ranges
+        let syllableBaselineColor = initialColorStateMap.get(serializeRange(syllableRangeValues[0])); //there is always at least one and they are the same color
+        let factor = animationInfo.currentSyllableLocation;
+        let syllableColorToUse = morphToWhite(syllableBaselineColor, Math.pow(Math.sin(Math.PI * animationInfo.currentSyllableLocation), .66) ); //square for a tighter animation
+        for (let range of syllableRangeValues) {
+            colorsToSet.set(serializeRange(range), syllableColorToUse);
+        }
+        //-----------------------
+
+        //2---------------------- paren ranges
+        for (let parenInfo of parenInfos) {
+            let initialGroupingColorToUse = initialColorStateMap.get(serializeRange(parenInfo.openParenRange));
+            let section = parenInfo.currentLocation.section;
+            let amount = parenInfo.currentLocation.amount;
+            let startsWithTowards = parenInfo.startsWithTowards;
+            let color
+            if (startsWithTowards && section % 2 == 0
+                                  ||
+                !startsWithTowards && section % 2 == 1
+            ) {
+              //even indexed sections with starting with towards must go from normal to white
+              //odd indexed sections with starting from away from must do the same
+              color = morphToWhite(initialGroupingColorToUse, amount);
+              //we do a test here to see if we are in the very last section, and if so, 
+              //we must very slightly prematurely reset the color down to 0 so that 
+              //the brace isn't hanging at white after we lose scope of it
+              if (section == parenInfo.directionIndicatorRanges.length && amount > 0.9) {
+                //so we need to go down from 90% of the last 10%
+                console.log("we are SETTING to " + (1 - (amount - .9) / .1));
+                color = morphToWhite(initialGroupingColorToUse, .9 * (1 - (amount - .9) / .1) );
+              }
+            }
+            else {
+              //all other scenarios will morph from white to normal
+              color = morphToWhite(initialGroupingColorToUse, 1 - amount);
+            }
+
+            colorsToSet.set(serializeRange(parenInfo.openParenRange), color);
+            colorsToSet.set(serializeRange(parenInfo.closeParenRange), color);
+            parenInfo.directionIndicatorRanges.forEach(r => {
+                colorsToSet.set(serializeRange(r), color);
+            });
+        }
+        //------------------------------------------------------------
+
+        alterColors(editor, document, colorsToSet);
+
+    }
+
+    intervalId = setInterval(animationRuntime, actualFrameDuration);
 }
 
-*/

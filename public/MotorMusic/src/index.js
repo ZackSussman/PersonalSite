@@ -2,7 +2,7 @@ import * as monaco from 'monaco-editor';
 monaco.languages.register({ id: 'MotorMusic' });
 
 import { initializeAudioRuntime, setComputedAudio } from './main/javascript/runtime-business/AudioRuntime.js';
-import { setGetAnimationInfoFunction, setSyllableTime, repaintColors} from './main/javascript/runtime-business/AnimationRuntime.js';
+import { setGetAnimationInfoFunction, setSyllableTime, repaintColors, initiateAnimation} from './main/javascript/runtime-business/AnimationRuntime.js';
 
 import * as MotorMusicTokensProvider from './main/generated-javascript/main/typescript/MotorMusicTokensProvider.js';
 if (typeof window === 'undefined') {
@@ -140,7 +140,7 @@ initializeAudioRuntime();
 var syllableTime = 500; //milliseconds
 var areWeCurrentlyPlayingBack = false;
 
-
+var currentColorMap = undefined;
 
 // Function to create the slider and display the value
 function createSyllableTimeSlider() {
@@ -207,6 +207,7 @@ function consumeText() {
     setComputedAudio(retreivedComputedAudio);
     setGetAnimationInfoFunction(retreivedGetAnimationInfoFunction);
     repaintColors(editor, document, colorMap);
+    currentColorMap = colorMap;
   }
   monaco.editor.setModelMarkers(editor.getModel(), 'owner',
      errors.map((error) => 
@@ -241,11 +242,7 @@ headerContainer.appendChild(button);
 
 // Add event listener to the button for playback (animations + sound)
 button.addEventListener('click', async () => {
-
-
-  //initiateAnimationPlayback(editor, document);
-
-
+  initiateAnimation(editor, document, currentColorMap);
 });
 
 
