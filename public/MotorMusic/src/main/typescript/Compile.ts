@@ -80,10 +80,12 @@ function parse(input : string, errors : Error[]) {
 import {ParseTreeWalker} from "antlr4";
 import {MotorMusicParserStaticAnalysisListener} from "./ParserListeners/Statics";
 import {AnimationListener, AnimationInfo} from "./ParserListeners/Animations";
+import { ParenColoringListener } from "./ParserListeners/Coloring";
 import {AudioGeneratorListener} from "./ParserListeners/AudioGeneratorListener";
 import {audioStream} from "./audio/Audio";
+import {range} from "./ParserListeners/ParserListenerUtils";
 export function process(input : string, syllableLength : number) : 
-    [animationFunction, audioStream , Error[]] 
+    [Map<range, string>, animationFunction, audioStream , Error[]] 
     {
     let errors : Error[] = [];
     let tree = parse(input, errors)
@@ -96,11 +98,15 @@ export function process(input : string, syllableLength : number) :
         function packageGetAnimationInfo(x : number) {
             return animationListener.getAnimationInfoForTime(x);
         }
-
+ 
         let audioGeneratorListener = new AudioGeneratorListener(syllableLength, animationListener.parensAccumData);
         ParseTreeWalker.DEFAULT.walk(audioGeneratorListener, tree);
 
-        return [packageGetAnimationInfo, audioGeneratorListener.audioStream, errors];
+
+        let colorMapBuilder = new ParenColoringListener();
+        ParseTreeWalker.DEFAULT.walk(colorMapBuilder, tree);
+
+        return [colorMapBuilder.buildColorMap(), packageGetAnimationInfo, audioGeneratorListener.audioStream, errors];
     }
-    return [undefined, undefined, errors];
+    return [undefined, undefined, undefined, errors];
 }

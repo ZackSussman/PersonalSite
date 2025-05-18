@@ -1,6 +1,9 @@
 import * as monaco from 'monaco-editor';
 monaco.languages.register({ id: 'MotorMusic' });
 
+import { initializeAudioRuntime, setComputedAudio } from './main/javascript/runtime-business/AudioRuntime.js';
+import { setGetAnimationInfoFunction, setSyllableTime, repaintColors} from './main/javascript/runtime-business/AnimationRuntime.js';
+
 import * as MotorMusicTokensProvider from './main/generated-javascript/main/typescript/MotorMusicTokensProvider.js';
 if (typeof window === 'undefined') {
 } else {
@@ -8,26 +11,8 @@ if (typeof window === 'undefined') {
 }
 
 
-let audioContext = null;
-
-function initializeAudioContext() {
-  if (!audioContext || audioContext.state === 'closed') {
-    audioContext = new AudioContext({ latencyHint: "interactive" });
-    audioContext.resume();
-   // console.log("AudioContext created");
-  } else {
-   // console.log("Reusing existing AudioContext");
-  }
-  return audioContext;
-}
-
-//audioContext.disconnect();
-//audioContext = null;
-//-----------------------------------------
-
 
 monaco.languages.setTokensProvider('MotorMusic', new MotorMusicTokensProvider.MotorMusicTokensProvider());
-
 
 
 monaco.editor.defineTheme('MotorMusicTheme', {
@@ -74,8 +59,6 @@ monaco.editor.defineTheme('MotorMusicTheme', {
       {token: 'overlinep0.MotorMusic', foreground: '#fe00ff', fontStyle: 'bold'},
     ]
 });
-
-
 
 
 const defaultCode = `(
@@ -145,9 +128,15 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
    ]
 });
 
+
+initializeAudioRuntime();
+
+//audioContext.disconnect();
+//audioContext = null;
+//-----------------------------------------
+
+
 //RUNTIME DATA--------------------------------
-//as a function of time, will specify the range of syllables to highlight 
-var getAnimationInfoFunction = undefined;
 var syllableTime = 500; //milliseconds
 var areWeCurrentlyPlayingBack = false;
 
@@ -181,6 +170,7 @@ function createSyllableTimeSlider() {
   slider.addEventListener("input", (event) => {
       syllableTime = parseInt(event.target.value, 10);
       valueDisplay.textContent = `${syllableTime} ms`;
+      setSyllableTime(syllableTime);
   });
 
    // Add the callback to be called when the mouse is released, this is when we recompute audio and animatino times
@@ -197,18 +187,27 @@ function createSyllableTimeSlider() {
 // Call the function to add the slider on page load
 createSyllableTimeSlider();
 
-//audio for the current code
-//stored as an array of arrays of arrays. 
-//[block1, block2, block3], where each blocki = [[left1, right1], [left2, right2], ...]
-var computedAudio = undefined;
-
-
+import {process} from '../src/main/generated-javascript/main/typescript/Compile.js'
 //parse, statics, report errors, construct animation functions
 function consumeText() {
-  areWeCurrentlyPlayingBack = false; //stop running if model contents changed
-  let [retreivedGetAnimationInfoFunction, retreivedComputedAudio, errors] = process(editor.getModel().getValue(), syllableTime);
-  computedAudio = retreivedComputedAudio;
-  getAnimationInfoFunction = retreivedGetAnimationInfoFunction;
+  let [colorMap, retreivedGetAnimationInfoFunction, retreivedComputedAudio, errors] = process(editor.getModel().getValue(), syllableTime);
+  if (errors.length === 0 && retreivedComputedAudio === undefined) {
+    console.log("error getting retreived computed audio");
+    return;
+  }
+  if (errors.length === 0 && retreivedGetAnimationInfoFunction === undefined) {
+    console.log("error getting animation info function");
+    return;
+  }
+  if (errors.length === 0 && colorMap === undefined) {
+    console.log("error getting color map");
+    return;
+  }
+  if (errors.length === 0) {
+    setComputedAudio(retreivedComputedAudio);
+    setGetAnimationInfoFunction(retreivedGetAnimationInfoFunction);
+    repaintColors(editor, document, colorMap);
+  }
   monaco.editor.setModelMarkers(editor.getModel(), 'owner',
      errors.map((error) => 
      (
@@ -223,8 +222,6 @@ function consumeText() {
      ),
   );
 }
-
-import {process} from '../src/main/generated-javascript/main/typescript/Compile.js'
 editor.onDidChangeModelContent(consumeText);
 
 
@@ -233,279 +230,24 @@ const button = document.createElement('button');
 button.innerText = 'run';
 button.id = 'run-button';
 
-/*
-// Add styles to the button (optional)
-button.style.padding = '10px 20px';
-button.style.backgroundColor = '#4CAF50';
-button.style.color = 'white';
-button.style.border = 'none';
-button.style.borderRadius = '5px';
-button.style.cursor = 'pointer';
-button.style.fontSize = '16px';
-button.style.marginBottom = '20px';
-*/
-
 button.className = 'action-button';
 
 // Append the button to the header container
 const headerContainer = document.querySelector('.header-container');
 headerContainer.appendChild(button);
 
-// Add event listener to the button
+
+
+
+// Add event listener to the button for playback (animations + sound)
 button.addEventListener('click', async () => {
 
-  //don't allow click if we are currently playing back
-  if (areWeCurrentlyPlayingBack) {
-    return;
-  }
+
+  //initiateAnimationPlayback(editor, document);
 
 
-  if (getAnimationInfoFunction === undefined) {
-    consumeText();
-    if (getAnimationInfoFunction === undefined) {
-      console.log("error: unable to retreived animation function");
-      return;
-    }
-  }
-
-  
-  let audioContext = initializeAudioContext();
-  let audioContextStartTime = Date.now();
-  try {
-    audioContext.resume();
-  } catch (error) {
-    console.log("UNABLE tO RESUME AUDIO CONTEXT: ", error)
-  }
-  //("the state of the audio context is " + audioContext.state);
-  let processorNode;
- 
-  /*
-  try {
-    processorNode = new AudioWorkletNode(audioContext, "AudioGenerator");
-  } catch (e) {
-    try {
-      const version = Date.now(); // Use a timestamp or unique version
-      await audioContext.audioWorklet.addModule(`src/audio/AudioGenerator.js?version=${version}`);
-      processorNode = new AudioWorkletNode(audioContext, "AudioGenerator", {
-        channelCount: 2,  // Force stereo output (2 channels)
-        channelCountMode: 'explicit',  // Ensure the node always has 2 channels
-        channelInterpretation: 'speakers',  // Ensures stereo output as expected
-        processorOptions: {
-          sampleArrays: computedAudio, //replace with sample arrays given from typescript
-        }
-      });
-    } catch (e) {
-      console.log(`** Error: Unable to create worklet node: ${e}`);
-    }
-  }
-  const gainNode = audioContext.createGain();
-  processorNode.connect(gainNode).connect(audioContext.destination);*/
-
-  function fadeOutAudio() {
-    const fadeOutDuration = 0.1;
-    const currentTime = audioContext.currentTime;
-
-    // Schedule a smooth fade-out
-    gainNode.gain.setValueAtTime(gainNode.gain.value, currentTime); // Set current gain
-    gainNode.gain.linearRampToValueAtTime(0, currentTime + fadeOutDuration);
-
-    // Disconnect the processorNode after the fade-out is complete
-    setTimeout(() => {
-      //  console.log("number of inputs is " + audioContext.destination.numberOfInputs);
-        processorNode.disconnect();
-        gainNode.disconnect();
-        audioContext.close();
-    }, fadeOutDuration * 1000);
-  }
-  
-    // Create a decorations collection
-    const decorationsCollection = editor.createDecorationsCollection();
-     //perform animation
-   let startTime = Date.now();
-  //("our start time is " + startTime);
-  // console.log("audio context start time is " + audioContextStartTime);
-  // let startTime = audioContextStartTime;
-   //let delayToAccountForLatency = audioContextStartTime - startTime;
-   //console.log("using delay: " + delayToAccountForLatency);
-    var intervalId;
-    function updateDecorations() {
-      //disable and exit if some other process decided we are no longer playing back
-      if (!areWeCurrentlyPlayingBack) {
-        clearInterval(intervalId);
-        decorationsCollection.clear();
-        //fadeOutAudio();
-        return;
-      }
-      const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
-      //console.log("elapsed time is " + elapsedTime);
-      //if (elapsedTime - delayToAccountForLatency < 0) {
-      //  return;
-      //}
-      let animationInfo = getAnimationInfoFunction(elapsedTime);
-      if (animationInfo === undefined) {
-        clearInterval(intervalId);
-        decorationsCollection.clear();
-        areWeCurrentlyPlayingBack = false;
-        //fadeOutAudio();
-        return;
-      }
-      let syllableRangeValues = animationInfo.currentSyllableRanges;
-      let parenInfos = animationInfo.parensInfo;
-     
-      //we had constructed ranges in our typescript as a 4 tupule, now we can create an actual range from it
-      function fakeRangeToRange(x) {
-        return new monaco.Range(x[0], x[1], x[2], x[3]);
-      }
-
-
-      //I tried to write a map here but it was being weird
-      const syllableDecorationOptions = [];
-      for (let range of syllableRangeValues) {
-        syllableDecorationOptions.push({
-          range: fakeRangeToRange(range),
-          options: {
-              inlineClassName: 'highlighted'
-          }
-        });
-      } 
-
-  
-
-      var bracketDecorationOptions = [];
-
-
-              /**
-     * Morphs a hex color towards white based on a factor from 0 to 1.
-     * 
-     * @param {string} hexColor - A string representing the initial color in hex format (e.g., "#FF5733").
-     * @param {number} factor - A number between 0 and 1. 0 returns the original color, 1 returns white.
-     * @returns {string} A string representing the resulting color in hex format.
-     */
-        function morphColors(initialColor, finalColor, factor) {
-        if (factor < 0 || factor > 1) {
-          throw new Error("Factor must be between 0 and 1.");
-        }
-
-
-        //square for a tighter animation
-        factor = factor * factor;
-
-        function cleanHex(c) {
-          // Ensure hexColor is valid and remove the "#" if present
-          const cleanHex = c.startsWith("#") ? c.slice(1) : c;
-          if (!/^[0-9A-Fa-f]{6}$/.test(cleanHex)) {
-            throw new Error("Invalid hex color format.");
-          }
-          return cleanHex;
-        }
-
-        function rgbFromCleaned(cleaned) {
-          // Parse the hex color into RGB components
-          return {
-            r: parseInt(cleanHex(cleaned).slice(0, 2), 16),
-            g: parseInt(cleanHex(cleaned).slice(2, 4), 16),
-            b: parseInt(cleaned.slice(4, 6), 16)
-          }
-        }
-        
-        let cleanedInitial = rgbFromCleaned(cleanHex(initialColor));
-        let cleanedFinal = rgbFromCleaned(cleanHex(finalColor));
-        // Interpolate each channel towards white (255)
-        const newR = Math.round(cleanedInitial.r + factor * (cleanedFinal.r - cleanedInitial.r));
-        const newG = Math.round(cleanedInitial.g + factor * (cleanedFinal.g - cleanedInitial.g));
-        const newB = Math.round(cleanedInitial.b + factor * (cleanedFinal.b - cleanedInitial.b));
-     
-        // Convert the new RGB values back to hex and return
-        const toHex = (value) => value.toString(16).padStart(2, "0").toUpperCase();
-        return `#${toHex(newR)}${toHex(newG)}${toHex(newB)}`;
-      }
-
-
-      function updateCss(className, color) {
-        //update css with computed color
-        let stylesheet = document.styleSheets[0];
-        let ruleIndex = Array.from(stylesheet.cssRules).findIndex(rule => {
-            return rule.selectorText.includes(className)});
-        if (ruleIndex === -1) {
-          console.log("error: couldn't find rule index for updating css");
-          return;
-        }
-        stylesheet.cssRules[ruleIndex].style.color = color;
-      }
-
-      updateCss("highlighted", morphColors( "#0075ff" , "#42D6FF", Math.pow(Math.sin(Math.PI * animationInfo.currentSyllableLocation), .33)));
-
-      parenInfos.forEach(parenInfo => {
-        let section = parenInfo.currentLocation.section;
-        let amount = parenInfo.currentLocation.amount;
-        let startsWithTowards = parenInfo.startsWithTowards;
-
-        function parenIndexToInitialColor(parenIndex) {
-          let index = parenIndex % 3;
-          if (index === 0) {
-            return "#fe00ff"
-          }
-          else if (index === 1) {
-            return "#1ca182"
-          }
-          else {
-            //assert(index === 2)
-            return "#6b90ff"
-          }
-        }
-
-        let className = 'parenHighlight' + (parenInfo.depth % 3);
-
-       // console.log(amount);
-        let color
-        if (startsWithTowards && section % 2 == 0
-                              ||
-            !startsWithTowards && section % 2 == 1
-        ) {
-          //even indexed sections with starting with towards must go from normal to white
-          //odd indexed sections with starting from away from must do the same
-          color = morphColors(parenIndexToInitialColor(parenInfo.depth), "#FFFFFF", amount);
-        }
-        else {
-          //all other scenarios will morph from white to normal
-          color = morphColors(parenIndexToInitialColor(parenInfo.depth), "#FFFFFF", 1 - amount);
-        }
-
-        updateCss(className, color);
-
-        bracketDecorationOptions.push({
-          range: fakeRangeToRange(parenInfo.openParenRange),
-          options: {
-            inlineClassName : className
-          }
-        });
-        bracketDecorationOptions.push({
-          range: fakeRangeToRange(parenInfo.closeParenRange),
-          options: {
-            inlineClassName : className
-          }
-        });
-        parenInfo.directionIndicatorRanges.forEach(r => {
-          bracketDecorationOptions.push({
-            range: fakeRangeToRange(r),
-            options: {
-              inlineClassName : className
-            }
-          })
-        })
-        })
-      
-
-        // Add the decoration to the collection
-        decorationsCollection.set(syllableDecorationOptions.concat(bracketDecorationOptions));
-
-      
-    }
-
-    //compute animation time, want the value closest to 1000 / 60 but which divides syllableTime
-    const idealFrameDuration = 1000/60; //60FPS
-    const numFramesWeWillFit = Math.ceil (syllableTime / idealFrameDuration); //ceil because we want to be at LEAST 60 FPS
-    const actualFrameDuration = syllableTime / numFramesWeWillFit ; 
-    intervalId = setInterval(updateDecorations, actualFrameDuration);
-    areWeCurrentlyPlayingBack = true;
 });
+
+
+//initial consumption of default code
+consumeText();
