@@ -12,9 +12,10 @@ let audioContext = null;
 
 function initializeAudioContext() {
   if (!audioContext || audioContext.state === 'closed') {
-    audioContext = new AudioContext({ latencyHint: "interactive" });
+    audioContext = new AudioContext({ latencyHint: "interactive", sampleRate: 48000});
     audioContext.resume();
     console.log("AudioContext created");
+    console.log("the sample rate is " + audioContext.sampleRate);
   } else {
     console.log("Reusing existing AudioContext");
   }
