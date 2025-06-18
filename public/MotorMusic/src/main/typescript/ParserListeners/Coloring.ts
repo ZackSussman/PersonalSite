@@ -13,13 +13,10 @@ import {DirectionSpecContext, EmptyContext, SyllableContext, TimeTaggedEmptyCont
 class ParenData {
     ParenBasedRanges : range[]; //The ranges corresponding to this set of Parens. This includes all direction specifiers, the (, and the )
     depth: number; //at what depth does this Paren sit relative to top level? 
-    maxDepth : number; //what is the maximum depth of any Paren which is experienced within the scope of this Paren?
-    //in other words, while this Paren was on the stack, what was the maximum length of the stack?
     immediateSyllableBasedRanges : range[] //the ranges of all the syllables which live at the IMMEDIATE enclosed level of this Paren
-    constructor(r : range[], d : number, m : number) {
+    constructor(r : range[], d : number) {
         this.ParenBasedRanges = r;
         this.depth = d;
-        this.maxDepth = m;
         this.immediateSyllableBasedRanges = [];
     } 
 }
@@ -34,11 +31,15 @@ export class ParenColoringListener extends MotorMusicParserListener {
     //only on exit of a Paren can we transfer some of the finalized data to the finalizedData as they are finalized
     currentParensInScope : ParenData[]
 
+    //the maximum depth obtained through the entire program
+    maxDepth : number;
+
 
     constructor() {
         super();
         this.currentParensInScope = [];
         this.finalizedData = [];
+        this.maxDepth = -1;
     }
 
     private getRangesFromCtx(ctx : DirectionSpecContext) {
@@ -49,19 +50,14 @@ export class ParenColoringListener extends MotorMusicParserListener {
     }
 
     enterDirectionSpec = (ctx : DirectionSpecContext) => {
-
         let currentDepth = this.currentParensInScope.length;
         //need to construct the initial Paren data for this ctx. The maxDepth won't be finalized until we push the Paren
         this.currentParensInScope.push(new ParenData(
             this.getRangesFromCtx(ctx),
-            currentDepth,
             currentDepth
         ));
-        //for all Parens on the stack, update their max depth to the current depth if applicable
-        for (let ParenData of this.currentParensInScope) {
-            if (ParenData.maxDepth < currentDepth) {
-                ParenData.maxDepth = currentDepth;
-            }
+        if (currentDepth + 1 > this.maxDepth) {
+            this.maxDepth = currentDepth + 1;
         }
     }
     
@@ -158,14 +154,15 @@ private hslToHex(h: number, s: number, l: number): string {
     //call this after walking the parse tree to generate the colors 
     public buildColorMap() : Map<range, string>{
         let res = new Map();
-        for (let ParenData of this.finalizedData) { 
+        for (let parenData of this.finalizedData) { 
             //maxDepth starts at 0 
-            let thisParenColor = this.getDistinctColor(ParenData.depth, ParenData.maxDepth + 1);
-            console.log("the color is " + thisParenColor);
-            for (let range of ParenData.ParenBasedRanges) {                                             
+            //console.log("p depth is " + parenData.depth);
+            //console.log("max depth is " + this.maxDepth + 1);
+            let thisParenColor = this.getDistinctColor(parenData.depth, this.maxDepth + 1);
+            for (let range of parenData.ParenBasedRanges) {                                             
                 res.set(serializeRange(range), thisParenColor);
             }
-            for (let range of ParenData.immediateSyllableBasedRanges) {
+            for (let range of parenData.immediateSyllableBasedRanges) {
                 res.set(serializeRange(range), this.brightenColor(thisParenColor));
             }
                                                                            
