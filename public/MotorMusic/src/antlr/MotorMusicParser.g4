@@ -16,11 +16,11 @@ raised_gesture_list:
 
 motion_spec_list:
      top = raised_gesture_list DOT  #SingleMotionSpecDown
-  |  top = raised_gesture_list OVERLINE #SingleMotionSpecUp
+  |  top = raised_gesture_list CARROT #SingleMotionSpecUp
   | top = raised_gesture_list DOT rest = motion_spec_list #TowardsPrefixMotionSpec
-  | top = raised_gesture_list OVERLINE rest = motion_spec_list #AwayPrefixMotionSpec
+  | top = raised_gesture_list CARROT rest = motion_spec_list #AwayPrefixMotionSpec
   | top = raised_gesture_list DOT rest = raised_gesture_list #EndAwayFromMotionSpec
-  | top = raised_gesture_list OVERLINE rest = raised_gesture_list #EndTowardsMotionSpec
+  | top = raised_gesture_list CARROT rest = raised_gesture_list #EndTowardsMotionSpec
 ;
 
 gesture:

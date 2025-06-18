@@ -94,7 +94,7 @@ export class ParenColoringListener extends MotorMusicParserListener {
         if (numShades <= 1) return "#A020F0"; // default warm purple if only one shade
     
         // Warm purple to warm blue
-        const endColor = { r: 149, g: 64, b: 224 };  //rgb(149, 64, 224)
+        const endColor = { r: 64, g: 157, b: 224 };  //rgb(64, 157, 224)
         const startColor = {r:20,g: 255,b: 208};   //rgb(20, 255, 208)
     
         const t: number = level / (numShades - 1); // normalize to [0, 1]

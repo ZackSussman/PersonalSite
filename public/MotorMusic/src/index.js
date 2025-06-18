@@ -63,11 +63,11 @@ monaco.editor.defineTheme('MotorMusicTheme', {
 
 const defaultCode = `(
     (
-        ((twin ‾ kl . twin ‾ kl . li ‾ tle) . 2star )
-        ((how ‾ i .  won ‾ der .  what ‾ you) . 2arr )
-        ((up ‾ a . bovv ‾ the .  world ‾ so) . 2hii )
-      ‾
-        ((liek ‾ a . dia ‾ mond . in ‾ the) . 2skyy )
+        ((twin ^ kl) (twin ^ kl) (li ^ tle) . 2star )
+        ((how ^ i)  (won ^ der)  (what ^ you) . 2arr )
+        ((up ^ a) (bovv ^ the)  (world ^ so) . 2hii )
+      ^
+        ((liek ^ a) (dia ^ mond) (in ^ the) . 2skyy )
     )
     (twin kle twin kle li tl . 2star )
     how i won der what you 
@@ -94,6 +94,7 @@ let editor = monaco.editor.create(document.getElementById('container'), {
 });
 
 
+/*
 editor.addCommand(
   monaco.KeyMod.CtrlCmd | monaco.KeyCode.UpArrow,
   () => {
@@ -110,7 +111,7 @@ editor.addCommand(
 
     editor.focus(); // Make sure focus remains
   }
-);
+);*/
 
 editor.layout();
 

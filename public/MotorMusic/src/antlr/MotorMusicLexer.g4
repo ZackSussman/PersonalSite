@@ -18,6 +18,6 @@ LSQBRACKET : '[';
 RSQBRACKET : ']';
 UNDERSCORE : '_';
 DOT: '.';
-OVERLINE : '‾';
+CARROT : '^';
 
 UNRECOGNIZED : .;

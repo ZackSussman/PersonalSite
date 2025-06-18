@@ -137,7 +137,7 @@ export class AnimationListener extends MotorMusicParserListener {
                return [this_.terminalNodeToRange(ctx.DOT())];
             }
             else if (ctx instanceof SingleMotionSpecUpContext || ctx instanceof EndTowardsMotionSpecContext) {
-                return [this_.terminalNodeToRange(ctx.OVERLINE())];
+                return [this_.terminalNodeToRange(ctx.CARROT())];
             }
             else if (ctx instanceof TowardsPrefixMotionSpecContext) {
                 let res = processMotionSpecListContext(this_, ctx._rest); 
@@ -146,7 +146,7 @@ export class AnimationListener extends MotorMusicParserListener {
             }
             else if (ctx instanceof AwayPrefixMotionSpecContext) {
                 let res = processMotionSpecListContext(this_, ctx._rest);
-                res.push(this_.terminalNodeToRange(ctx.OVERLINE()));
+                res.push(this_.terminalNodeToRange(ctx.CARROT()));
                 return res;
             }
        }

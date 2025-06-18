@@ -20,7 +20,7 @@ export function getAllDirectionSpecifierRangesFromMotionSpecListContext(ctx : Mo
        return [terminalNodeToRange(ctx.DOT())];
     }
     else if (ctx instanceof SingleMotionSpecUpContext || ctx instanceof EndTowardsMotionSpecContext) {
-        return [terminalNodeToRange(ctx.OVERLINE())];
+        return [terminalNodeToRange(ctx.CARROT())];
     }
     else if (ctx instanceof TowardsPrefixMotionSpecContext) {
         let res = getAllDirectionSpecifierRangesFromMotionSpecListContext(ctx._rest); 
@@ -29,7 +29,7 @@ export function getAllDirectionSpecifierRangesFromMotionSpecListContext(ctx : Mo
     }
     else if (ctx instanceof AwayPrefixMotionSpecContext) {
         let res = getAllDirectionSpecifierRangesFromMotionSpecListContext(ctx._rest);
-        res.push(terminalNodeToRange(ctx.OVERLINE()));
+        res.push(terminalNodeToRange(ctx.CARROT()));
         return res;
     }
 }
