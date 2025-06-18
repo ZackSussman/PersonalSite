@@ -239,7 +239,7 @@ export function initiateAnimation(editor, document, initialColorStateMap) {
               //the brace isn't hanging at white after we lose scope of it
               if (section == parenInfo.directionIndicatorRanges.length && amount > 0.9) {
                 //so we need to go down from 90% of the last 10%
-                console.log("we are SETTING to " + (1 - (amount - .9) / .1));
+               // console.log("we are SETTING to " + (1 - (amount - .9) / .1));
                 color = morphToWhite(initialGroupingColorToUse, .9 * (1 - (amount - .9) / .1) );
               }
             }
@@ -250,9 +250,46 @@ export function initiateAnimation(editor, document, initialColorStateMap) {
 
             colorsToSet.set(serializeRange(parenInfo.openParenRange), color);
             colorsToSet.set(serializeRange(parenInfo.closeParenRange), color);
-            parenInfo.directionIndicatorRanges.forEach(r => {
-                colorsToSet.set(serializeRange(r), color);
+
+            //console.log("the ranges are: ");
+            //for (let r of parenInfo.directionIndicatorRanges) {
+            //    console.log(r);
+            //}
+
+            //sort by starting x coordinate in the range to ensure they are in order w.r.t our sections
+            parenInfo.directionIndicatorRanges.sort((r1, r2) => {
+                if (r1[0] == r2[0]) {
+                    return r1[1] - r2[1];
+                }
+                return r1[0] - r2[0];
             });
+           // console.log("section is " + section);
+           // console.log("the section is " + section);
+
+           let bottom = section - 1;
+           //need to close out the trailing shift token
+           if ((startsWithTowards && section % 2 == 1) || (!startsWithTowards && section % 2 == 0)) {
+              bottom = section - 2;
+           }
+           else {
+              bottom = section - 1;
+           }
+            for (let i = bottom; i <= section; i++) {
+                //console.log("i is " + i);
+                if (i < parenInfo.directionIndicatorRanges.length && i >= 0) {
+                    colorsToSet.set(serializeRange(parenInfo.directionIndicatorRanges[i]), color);
+                }
+            }
+            /*
+            parenInfo.directionIndicatorRanges.forEach((r, i) => {
+                //console.log("i is " + i);
+                //console.log("section is " + section);
+                //console.log("setting to " + ((i == section) || (i - 1) == section) ? color : initialGroupingColorToUse);
+                //set the color back to the basic one if it is not in the correct range
+                let maskedColor = ((i == section) || (i - 1) == section) ? color : initialGroupingColorToUse;
+              
+                //colorsToSet.set(serializeRange(r), color);
+            });*/
         }
         //------------------------------------------------------------
 
