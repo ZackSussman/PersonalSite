@@ -193,7 +193,7 @@ export function initiateAnimation(editor, document, initialColorStateMap) {
         //it gives back undefined once elapside time has gone above what there is actual animation for 
         if (animationInfo === undefined) {
             clearInterval(intervalId);
-            //repaintColors(editor, document, initialColorStateMap);
+            repaintColors(editor, document, initialColorStateMap);
             areWeCurrentlyPlayingBack = false;
             return;
         }
