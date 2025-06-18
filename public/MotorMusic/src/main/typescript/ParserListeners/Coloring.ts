@@ -88,24 +88,52 @@ export class ParenColoringListener extends MotorMusicParserListener {
     }
 
 
-    //generate a shade of purple which morphs evenly between numShades shades. level ranges from 0 to numShades - 1
-    //and indicates which shade to choose from 
-    private generateColor(level: number, numShades: number): string {
-        if (numShades <= 1) return "#A020F0"; // default warm purple if only one shade
-    
-        // Warm purple to warm blue
-        const endColor = { r: 64, g: 157, b: 224 };  //rgb(64, 157, 224)
-        const startColor = {r:20,g: 255,b: 208};   //rgb(20, 255, 208)
-    
-        const t: number = level / (numShades - 1); // normalize to [0, 1]
-        const r: number = Math.round(startColor.r + t * (endColor.r - startColor.r));
-        const g: number = Math.round(startColor.g + t * (endColor.g - startColor.g));
-        const b: number = Math.round(startColor.b + t * (endColor.b - startColor.b));
-    
-        const toHex = (value: number): string => value.toString(16).padStart(2, "0").toUpperCase();
-        let res = `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-        return res;
+private getDistinctColor(level: number, numColors: number): string {
+    if (numColors <= 0) throw new Error("numColors must be > 0");
+    if (level < 0 || level >= numColors) throw new Error("level must be in [0, numColors)");
+
+    const coolStart = 180;
+    const coolEnd = 300;
+    const hueRange = coolEnd - coolStart;
+
+    let hue: number;
+    if (numColors === 1) {
+        hue = (coolStart + coolEnd) / 2; // just the middle hue to avoid division by 0
+    } else {
+        hue = coolStart + (hueRange * level) / (numColors - 1);
     }
+
+    const saturation = 70;
+    const lightness = 60;
+
+    return this.hslToHex(hue, saturation, lightness);
+}
+
+// Helper function: Convert HSL to HEX
+private hslToHex(h: number, s: number, l: number): string {
+    s /= 100;
+    l /= 100;
+
+    const c = (1 - Math.abs(2 * l - 1)) * s;
+    const x = c * (1 - Math.abs((h / 60) % 2 - 1));
+    const m = l - c / 2;
+    let r = 0, g = 0, b = 0;
+
+    if (h < 60) [r, g, b] = [c, x, 0];
+    else if (h < 120) [r, g, b] = [x, c, 0];
+    else if (h < 180) [r, g, b] = [0, c, x];
+    else if (h < 240) [r, g, b] = [0, x, c];
+    else if (h < 300) [r, g, b] = [x, 0, c];
+    else [r, g, b] = [c, 0, x];
+
+    const toHex = (v: number) =>
+        Math.round((v + m) * 255)
+            .toString(16)
+            .padStart(2, "0")
+            .toUpperCase();
+
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+}
 
     private brightenColor(hex: string, amount: number = -30): string {
         // Remove the '#' if it exists
@@ -132,7 +160,8 @@ export class ParenColoringListener extends MotorMusicParserListener {
         let res = new Map();
         for (let ParenData of this.finalizedData) { 
             //maxDepth starts at 0 
-            let thisParenColor = this.generateColor(ParenData.depth, ParenData.maxDepth + 1);
+            let thisParenColor = this.getDistinctColor(ParenData.depth, ParenData.maxDepth + 1);
+            console.log("the color is " + thisParenColor);
             for (let range of ParenData.ParenBasedRanges) {                                             
                 res.set(serializeRange(range), thisParenColor);
             }

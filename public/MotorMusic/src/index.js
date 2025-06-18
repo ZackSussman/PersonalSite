@@ -189,6 +189,9 @@ function createSyllableTimeSlider() {
 createSyllableTimeSlider();
 
 import {process} from '../src/main/generated-javascript/main/typescript/Compile.js'
+
+let isCurrentStateCompiled = false;
+
 //parse, statics, report errors, construct animation functions
 function consumeText() {
   let [colorMap, retreivedGetAnimationInfoFunction, retreivedComputedAudio, errors] = process(editor.getModel().getValue(), syllableTime);
@@ -209,6 +212,10 @@ function consumeText() {
     setGetAnimationInfoFunction(retreivedGetAnimationInfoFunction);
     repaintColors(editor, document, colorMap);
     currentColorMap = colorMap;
+    isCurrentStateCompiled = true;
+  } 
+  else {
+    isCurrentStateCompiled = false;
   }
   monaco.editor.setModelMarkers(editor.getModel(), 'owner',
      errors.map((error) => 
@@ -243,7 +250,8 @@ headerContainer.appendChild(button);
 
 // Add event listener to the button for playback (animations + sound)
 button.addEventListener('click', async () => {
-  initiateAnimation(editor, document, currentColorMap);
+  if (isCurrentStateCompiled)
+    initiateAnimation(editor, document, currentColorMap);
 });
 
 
