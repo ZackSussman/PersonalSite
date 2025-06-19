@@ -182,7 +182,7 @@ export function initiateAnimation(editor, document, initialColorStateMap, audioS
         const elapsedTime = (audioContext.currentTime - startTime) * 1000;  // Time elapsed in ms
         console.log("elapside time is " + elapsedTime);
         
-        let animationInfo = getAnimationInfoFunction(Math.max(elapsedTime - DELAY_BEFORE_PLAYBACK_START - CORRECTION_FACTOR, 0)); //apply a .1 second shift to align with the delay the audio is forced to have
+        let animationInfo = getAnimationInfoFunction(Math.max(elapsedTime - DELAY_BEFORE_PLAYBACK_START + CORRECTION_FACTOR, 0)); //apply a .1 second shift to align with the delay the audio is forced to have
         //it gives back undefined once elapside time has gone above what there is actual animation for 
         if (animationInfo === undefined) {
             clearInterval(intervalId);
