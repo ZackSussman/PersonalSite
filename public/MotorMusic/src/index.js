@@ -11,7 +11,6 @@ if (typeof window === 'undefined') {
 }
 
 
-
 monaco.languages.setTokensProvider('MotorMusic', new MotorMusicTokensProvider.MotorMusicTokensProvider());
 
 
