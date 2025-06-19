@@ -263,8 +263,8 @@ headerContainer.appendChild(button);
 // Add event listener to the button for playback (animations + sound)
 button.addEventListener('click', async () => {
   if (isCurrentStateCompiled && !areWeCurrentlyPlayingBack) {
-    initiateAnimation(editor, document, currentColorMap);
-    beginNewPlayback();
+    let audioStartTime = await beginNewPlayback();
+    initiateAnimation(editor, document, currentColorMap, audioStartTime);
   }
 });
 

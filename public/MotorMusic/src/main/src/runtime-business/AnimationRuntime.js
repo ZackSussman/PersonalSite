@@ -6,6 +6,8 @@ var startTime = undefined;
 
 import { DELAY_BEFORE_PLAYBACK_START, CORRECTION_FACTOR } from '../../generated-javascript/main/src/runtime-business/RuntimeConstants.js';
 
+import {audioContext} from "./AudioRuntime.js";
+
 let actualFrameDuration = undefined;
 
 export var areWeCurrentlyPlayingBack = false; //keeps track of whether we are currently animating
@@ -170,14 +172,15 @@ function alterColors(editor, document, colorsToSet) {
 
 import { serializeRange } from '../../generated-javascript/main/src/typescript/ParserListeners/ParserListenerUtils.js';
 //initialColorStateMap is the map of initial colors of the program state before animation begins, mapping ranges to their baseline colors
-export function initiateAnimation(editor, document, initialColorStateMap) {
+export function initiateAnimation(editor, document, initialColorStateMap, audioStartTime) {
     areWeCurrentlyPlayingBack = true;
-    startTime = Date.now();
-
+    startTime = audioStartTime;
+    console.log("start time is " + startTime);
     //the runtime logic of the animation...this function will get called from an interval and its job is to continually
     //update the colors based on the computed animation function 
     function animationRuntime() {
-        const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
+        const elapsedTime = (audioContext.currentTime - startTime) * 1000;  // Time elapsed in ms
+        console.log("elapside time is " + elapsedTime);
         
         let animationInfo = getAnimationInfoFunction(Math.max(elapsedTime - DELAY_BEFORE_PLAYBACK_START - CORRECTION_FACTOR, 0)); //apply a .1 second shift to align with the delay the audio is forced to have
         //it gives back undefined once elapside time has gone above what there is actual animation for 

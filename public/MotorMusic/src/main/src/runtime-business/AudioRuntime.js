@@ -1,4 +1,4 @@
-let audioContext = null;
+export let audioContext = null;
 let processorNode = null;
 let gainNode = null;
 
@@ -21,6 +21,7 @@ export function setComputedAudio(audio) {
   computedAudio = audio;
 }
 
+//returns the starting time of audio playback
 export async function beginNewPlayback() {
   audioContext = initializeAudioRuntime();
 
@@ -75,7 +76,7 @@ export async function beginNewPlayback() {
 
   gainNode = audioContext.createGain();
   processorNode.connect(gainNode).connect(audioContext.destination);
-
+  return audioContext.currentTime;
 }
 
 export function fadeOutAudio() {
