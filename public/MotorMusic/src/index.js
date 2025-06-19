@@ -59,8 +59,15 @@ monaco.editor.defineTheme('MotorMusicTheme', {
     ]
 });
 
-
-const defaultCode = `(
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
+const params = new URLSearchParams(window.location.search);
+const code = params.get("c");
+var defaultCode;
+if (code) {
+  defaultCode = decompressFromEncodedURIComponent(code);
+}
+else {
+  defaultCode = `(
     (
         ((twin ^ kl) (twin ^ kl) (li ^ tle) . 2star )
         ((how ^ i)  (won ^ der)  (what ^ you) . 2arr )
@@ -73,6 +80,8 @@ const defaultCode = `(
 .
     6arr
 )`;
+}
+
 
 let editor = monaco.editor.create(document.getElementById('container'), {
     value: defaultCode,
@@ -189,6 +198,13 @@ let isCurrentStateCompiled = false;
 
 //parse, statics, report errors, construct animation functions
 function consumeText() {
+  //update URI 
+  const newCode = compressToEncodedURIComponent(editor.getModel().getValue()); // or compress if needed
+  const params = new URLSearchParams(window.location.search);
+  params.set("c", newCode);
+  const newUrl = `${window.location.pathname}?${params.toString()}`;
+  window.history.replaceState({}, "", newUrl);
+
   let [colorMap, retreivedGetAnimationInfoFunction, retreivedComputedAudio, errors] = process(editor.getModel().getValue(), syllableTime);
   if (errors.length === 0 && retreivedComputedAudio === undefined) {
     console.log("error getting retreived computed audio");
