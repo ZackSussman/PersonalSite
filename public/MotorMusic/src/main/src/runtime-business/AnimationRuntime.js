@@ -4,7 +4,7 @@ var getAnimationInfoFunction = undefined;
 //the time that playback was started at 
 var startTime = undefined;
 
-import { DELAY_BEFORE_PLAYBACK_START } from '../../generated-javascript/main/src/runtime-business/RuntimeConstants.js';
+import { DELAY_BEFORE_PLAYBACK_START, CORRECTION_FACTOR } from '../../generated-javascript/main/src/runtime-business/RuntimeConstants.js';
 
 let actualFrameDuration = undefined;
 
@@ -179,7 +179,7 @@ export function initiateAnimation(editor, document, initialColorStateMap) {
     function animationRuntime() {
         const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
         
-        let animationInfo = getAnimationInfoFunction(Math.max(elapsedTime - DELAY_BEFORE_PLAYBACK_START, 0)); //apply a .1 second shift to align with the delay the audio is forced to have
+        let animationInfo = getAnimationInfoFunction(Math.max(elapsedTime - DELAY_BEFORE_PLAYBACK_START - CORRECTION_FACTOR, 0)); //apply a .1 second shift to align with the delay the audio is forced to have
         //it gives back undefined once elapside time has gone above what there is actual animation for 
         if (animationInfo === undefined) {
             clearInterval(intervalId);
