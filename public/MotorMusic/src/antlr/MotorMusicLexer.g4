@@ -16,7 +16,8 @@ LANGLE : '<';
 RANGLE : '>';
 LSQBRACKET : '[';
 RSQBRACKET : ']';
-MID : '|';
 UNDERSCORE : '_';
+DOT: '.';
+CARROT : '^';
 
 UNRECOGNIZED : .;

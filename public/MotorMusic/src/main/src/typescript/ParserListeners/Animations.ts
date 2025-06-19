@@ -1,47 +1,46 @@
 
-/// <reference path="../../../node_modules/monaco-editor/monaco.d.ts" />
-import MotorMusicParserListener from "../../../antlr/generated/MotorMusicParserListener";
+/// <reference path="../../../../node_modules/monaco-editor/monaco.d.ts" />
+import MotorMusicParserListener from "../../../../antlr/generated/MotorMusicParserListener";
 //                                      context for {|}  context for (|)
-import { SyllableContext, EmptyContext, ConcatContext, ResolveContext, TimeTaggedEmptyContext, TimeTaggedSyllableContext} from "../../../antlr/generated/MotorMusicParser";
+import { SyllableContext, EmptyContext, DirectionSpecContext, TimeTaggedEmptyContext, TimeTaggedSyllableContext, SingleMotionSpecUpContext, 
+        SingleMotionSpecDownContext, TowardsPrefixMotionSpecContext, AwayPrefixMotionSpecContext, Motion_spec_listContext, EndAwayFromMotionSpecContext, EndTowardsMotionSpecContext
+} from "../../../../antlr/generated/MotorMusicParser";
 import { TerminalNode } from "antlr4";
 
-//NOTE: this whole file references the {} symbol with the term 'bracket', () with 'parens', and a generalized term to refer to either as brace
 
 type range = [number, number, number, number];
 
 
-//represents a location within a gesture, either represented as a towards | away from  OR as away from | towards
-export class GestureLocation {
-    //we would preferably use an enum for this but I'm not sure how that translates to JS
-    leftSide : boolean //tells you whether or not the location is on the left or right of the | 
-    amount : number //ranges from 0 to 1. Is the percent through the repective side of the gesture
-    constructor(leftSide : boolean, amount : number) {
-        this.leftSide = leftSide;
+//represents a location within a direction specification
+export class DirectionSpecLocation {
+    section : number //tells you the index of which section of the direction specification
+    amount : number //ranges from 0 to 1. Is the percent through the repective section of the gesture
+    constructor(section : number, amount : number) {
+        this.section = section;
         this.amount = amount;
     }
 }
 
 
 //Stores all the info that is needed for the coloring of a particular set of braces
-export class BracesAnimationInfo {
-    openBraceRange : range;
-    closeBraceRange : range;
-    midRange : range;
+export class DirectionSpecAnimationInfo {
+    openParenRange : range;
+    closeParenRange : range;
+    directionIndicatorRanges : range[]; //the ranges of the up and down arrows
     depth : number; //the depth taken with respect to its type of brace, should match that given by the motorMusicTokensProvider
-    gestureLocation : GestureLocation //determines where we are within the braces, used by the js to decide the color intensity 
-   
-    //in the last phase, this is used to find our accuminfo to construct the gestureLocation
-    //only one of these will ever actually be filled out
-    cctx : ConcatContext;
-    rctx : ResolveContext;
+    currentLocation : DirectionSpecLocation //determines where we are within the direction specification, used by the js to decide the color intensity 
+    startsWithTowards : boolean; //used to indicate whether the initial segment of direction staorts with towards or away from
 
-    constructor(openBraceRange : range , closeBraceRange : range , midRange : range, depth : number, cctx : ConcatContext, rctx : ResolveContext) {
-        this.openBraceRange = openBraceRange;
-        this.closeBraceRange = closeBraceRange;
-        this.midRange = midRange;
+    //in the last phase, this is used to find our accuminfo to construct the gestureLocation
+    ctx : DirectionSpecContext;
+
+    constructor(openParenRange : range , closeParenRange : range , directionIndicatorRanges : range[], depth : number, startsWithTowards : boolean, ctx : DirectionSpecContext) {
+        this.openParenRange = openParenRange;
+        this.closeParenRange = closeParenRange;
+        this.directionIndicatorRanges = directionIndicatorRanges;
+        this.startsWithTowards = startsWithTowards;
         this.depth = depth;
-        this.cctx = cctx;
-        this.rctx = rctx;
+        this.ctx = ctx;
     }
 }
 
@@ -50,13 +49,11 @@ export class AnimationInfo {
     currentSyllableRanges : range[]; //array of ranges to light up for the current syllable 
     //note we need it to be an array so we can potentially have information for a syllable as well as a number in front of it 
     currentSyllableLocation : number; //from 0 to 1, tells us how far along the syllable we are 
-    //all sets of braces that the current scope lies within are stored between the following two fields
-    bracketsInfo : BracesAnimationInfo[]; 
-    parensInfo : BracesAnimationInfo[];
-    constructor(syllableRanges : range[], csLoc : number, b : BracesAnimationInfo[], p : BracesAnimationInfo[]) {
+    //all sets of braces that the current scope lies within are stored between the following field
+    parensInfo : DirectionSpecAnimationInfo[];
+    constructor(syllableRanges : range[], csLoc : number, p : DirectionSpecAnimationInfo[]) {
         this.currentSyllableRanges = syllableRanges;
         this.currentSyllableLocation = csLoc;
-        this.bracketsInfo = b;
         this.parensInfo = p;
     }
 }
@@ -67,18 +64,20 @@ export class AnimationInfo {
 //below the above line = classes forming data we store here to help form the data above the line
 
 //data we wish to accumulate for each brace during our parse tree
+//we use this data to compute the DirectionSpecLocation
 export class BraceAccumData {
     depth : number 
-    firstSyllableIndex : number //the index of the first syllable within this brace
-    lastSyllableIndex : number //the index of the last syllable within this brace
-    midIndex : number //the index of the first syllable after the | within this brace 
-    constructor(depth : number, firstSyllableIndex : number) {
+    sectionStartIndices : number[] //the indices of the first syllable of each section of the brace (in ascending order). 
+    //tacked onto the very end of it we will also save the index of the first syllable outside of the brace. This will be used to determine the length of the final section in a clean way. 
+    startsWithTowards : boolean;
+    constructor(depth : number, startsWithTowards : boolean) {
         this.depth = depth;
-        this.firstSyllableIndex = firstSyllableIndex;
+        this.sectionStartIndices = [];
+        this.startsWithTowards = startsWithTowards;
     }
 
     toString() {
-        return ("firstSyllable: " + this.firstSyllableIndex + "\n midIndex: " + this.midIndex + "\n lastSyllable: " + this.lastSyllableIndex);
+        return ("midIndices: " + this.sectionStartIndices + "\n lastSyllable: ");
     }
 }
 
@@ -86,7 +85,7 @@ export class BraceAccumData {
 class SyllableData {
     duration : number; //units of this are in pulses (so it's the number of pulses)
     syllable_range : range //where is the syllable in the code 
-    number_range : range //range for the corresponding 
+    number_range : range //range for the corresponding number, may be undefined if the syllable does not have a number 
     constructor(d : number, r : range, nr : range) {
         this.duration = d;
         this.syllable_range = r;
@@ -94,10 +93,12 @@ class SyllableData {
     }
 };
 
+/*
 export enum BraceType {
     Bracket,
     Paren
 }
+*/
 
 //walk the parse tree and conglomerate enough data to be able to efficiently construct an AnimationInfo object for a given elapsed time 
 export class AnimationListener extends MotorMusicParserListener {
@@ -105,65 +106,73 @@ export class AnimationListener extends MotorMusicParserListener {
     timePerPulse : number;
     orderedSyllableData : SyllableData[] //respects the order of syllables in the code - for each syllable, we store its range 
    
-    //map a syllable range to the set of braces contexts that it lies within
-    bracketsInfo : Map <range, BracesAnimationInfo[]>;
-    parensInfo : Map <range, BracesAnimationInfo[]>;
+    //map a syllable range to the set of direction specifications that it lies within
+    parensInfo : Map <range, DirectionSpecAnimationInfo[]>;
 
     //store the set of current braces that are in scope
-    currentBracketsInScope : ConcatContext[]
-    currentParensInScope : ResolveContext[]
+    currentParensInScope : DirectionSpecContext[];
 
     //keep track of the depths for each brace type
-    bracketsAccumData : Map<ConcatContext, BraceAccumData>
-    parensAccumData : Map<ResolveContext, BraceAccumData>
-
-    //a stack to keep track of whether the most recent bracket context is a () or a {}
-    bracketContextFrameTypeIndicators : BraceType[]
+    parensAccumData : Map<DirectionSpecContext, BraceAccumData>;
 
 
-                //syllableLength is the amount of time in seconds per syllable
+    //syllableLength is the amount of time in seconds per syllable
     constructor(syllableLength : number) {
         super();
         this.timePerPulse = syllableLength;
         this.orderedSyllableData = [];
-        this.bracketsInfo = new Map();
-        this.bracketsAccumData= new Map();
+        this.parensInfo = new Map();
         this.parensInfo = new Map();
         this.parensAccumData = new Map();
-        this.currentBracketsInScope = [];
         this.currentParensInScope = []; 
-        this.bracketContextFrameTypeIndicators = [];
     }
 
     terminalNodeToRange(n : TerminalNode) : range {
         return [n.symbol.line, n.symbol.column + 1, n.symbol.line, n.symbol.column + n.getText().length + 1];
     }
 
+    private getDirectionSymbolRangesFromDirectionSpecAnimationInfoContext(ctx : DirectionSpecContext) : range[] {
+       let motionSpecListCtx : Motion_spec_listContext = ctx._motion_spec;
+       function processMotionSpecListContext(this_ : AnimationListener, ctx : Motion_spec_listContext) : range[] {
+            if (ctx instanceof SingleMotionSpecDownContext || ctx instanceof EndAwayFromMotionSpecContext ) {
+               return [this_.terminalNodeToRange(ctx.DOT())];
+            }
+            else if (ctx instanceof SingleMotionSpecUpContext || ctx instanceof EndTowardsMotionSpecContext) {
+                return [this_.terminalNodeToRange(ctx.CARROT())];
+            }
+            else if (ctx instanceof TowardsPrefixMotionSpecContext) {
+                let res = processMotionSpecListContext(this_, ctx._rest); 
+                res.push(this_.terminalNodeToRange(ctx.DOT()));
+                return res;
+            }
+            else if (ctx instanceof AwayPrefixMotionSpecContext) {
+                let res = processMotionSpecListContext(this_, ctx._rest);
+                res.push(this_.terminalNodeToRange(ctx.CARROT()));
+                return res;
+            }
+       }
+       return processMotionSpecListContext(this, motionSpecListCtx);
+    }
+
 
     //every time we come across a syllable, we must instantiate the braces info for that syllable
     private updateBracesInfosForSyllableRange(syllableRange : range) {
-        const bracketInfosForThisSyllable = [];
         const parensInfosForThisSyllable = [];
-        for (let bracketContext of this.currentBracketsInScope) {
-            bracketInfosForThisSyllable.push(new BracesAnimationInfo(
-                this.terminalNodeToRange(bracketContext.LCURLY()),
-                this.terminalNodeToRange(bracketContext.RCURLY()),
-                this.terminalNodeToRange(bracketContext.MID()),
-                this.bracketsAccumData.get(bracketContext).depth,
-                bracketContext, undefined
-            ));
-        }
         for (let parensContext of this.currentParensInScope) {
-            parensInfosForThisSyllable.push(new BracesAnimationInfo(
+            parensInfosForThisSyllable.push(new DirectionSpecAnimationInfo(
                 this.terminalNodeToRange(parensContext.LPAREN()),
                 this.terminalNodeToRange(parensContext.RPAREN()),
-                this.terminalNodeToRange(parensContext.MID()),
+                this.getDirectionSymbolRangesFromDirectionSpecAnimationInfoContext(parensContext),
                 this.parensAccumData.get(parensContext).depth,
-                undefined,
+                parensContext._motion_spec instanceof SingleMotionSpecDownContext
+                                        ||
+                parensContext._motion_spec instanceof TowardsPrefixMotionSpecContext
+                                        || 
+                parensContext._motion_spec instanceof EndAwayFromMotionSpecContext
+                ,
                 parensContext
             ));
         }
-        this.bracketsInfo.set(syllableRange, bracketInfosForThisSyllable);
         this.parensInfo.set(syllableRange, parensInfosForThisSyllable);
     }
 
@@ -179,7 +188,7 @@ export class AnimationListener extends MotorMusicParserListener {
     exitSyllable = (ctx : SyllableContext) => {
         const thisSyllableRange : range = this.terminalNodeToRange(ctx.SYLLABLE());
         //update list of syllables
-		this.orderedSyllableData.push(new SyllableData(1, thisSyllableRange, undefined));
+		this.orderedSyllableData.push(new SyllableData(1, thisSyllableRange, undefined)); //undefined because there is no time tag
         this.updateBracesInfosForSyllableRange(thisSyllableRange);
     }
 
@@ -204,44 +213,29 @@ export class AnimationListener extends MotorMusicParserListener {
         this.updateBracesInfosForSyllableRange(range);
     }
 
+    enterDirectionSpec = (ctx : DirectionSpecContext) => {
+        let startsWithTowards : boolean = 
+         ctx._motion_spec instanceof SingleMotionSpecDownContext
+                                        ||
+         ctx._motion_spec instanceof TowardsPrefixMotionSpecContext
+                                        || 
+         ctx._motion_spec instanceof EndAwayFromMotionSpecContext
 
-    enterConcat = (ctx : ConcatContext) => {
-        this.currentBracketsInScope.push(ctx);
-        this.bracketsAccumData.set(ctx, new BraceAccumData(this.currentBracketsInScope.length - 1, this.orderedSyllableData.length));
-        this.bracketContextFrameTypeIndicators.push(BraceType.Bracket);
-    }
-
-    exitConcat = (ctx : ConcatContext) => {
-        let dataToUpdate = this.bracketsAccumData.get(ctx);
-        dataToUpdate.lastSyllableIndex = this.orderedSyllableData.length - 1;
-        this.currentBracketsInScope.pop();
-        this.bracketContextFrameTypeIndicators.pop();
-    }
-
-    enterResolve = (ctx : ResolveContext) => {
         this.currentParensInScope.push(ctx);
-        this.parensAccumData.set(ctx, new BraceAccumData(this.currentParensInScope.length - 1, this.orderedSyllableData.length));
-        this.bracketContextFrameTypeIndicators.push(BraceType.Paren);
+        this.parensAccumData.set(ctx, new BraceAccumData(this.currentParensInScope.length - 1, startsWithTowards));
+        this.parensAccumData.get(ctx).sectionStartIndices.push(this.orderedSyllableData.length);   
     }
 
-    exitResolve = (ctx : ResolveContext) => {
+    exitDirectionSpec = (ctx : DirectionSpecContext) => {
         let dataToUpdate = this.parensAccumData.get(ctx);
-        dataToUpdate.lastSyllableIndex = this.orderedSyllableData.length - 1;
+        dataToUpdate.sectionStartIndices.push(this.orderedSyllableData.length);
         this.currentParensInScope.pop();
-        this.bracketContextFrameTypeIndicators.pop();
     }
 
     visitTerminal = (t : TerminalNode) => {
-        if (t.getText() == "|") {
+        if (t.getText() == "." || t.getText() == "^") {
             //find the most recent brace context and update the appropriate BraceAccumData
-            switch (this.bracketContextFrameTypeIndicators.at(-1)) {
-                case BraceType.Bracket:
-                    this.bracketsAccumData.get(this.currentBracketsInScope.at(-1)).midIndex = this.orderedSyllableData.length;
-                    break;
-                case BraceType.Paren: 
-                    this.parensAccumData.get(this.currentParensInScope.at(-1)).midIndex = this.orderedSyllableData.length;
-                    break;
-            }
+            this.parensAccumData.get(this.currentParensInScope.at(-1)).sectionStartIndices.push(this.orderedSyllableData.length );        
         }
     }
 
@@ -289,37 +283,31 @@ export class AnimationListener extends MotorMusicParserListener {
 
          //given the acc data, determine the location within the gesture of the brace
         function locationFromAccData(accData : BraceAccumData, this_ : AnimationListener ) {
-            //Left sidie
-            if (thisSyllableIndex < accData.midIndex) {
-                let totalTimeOnLeftForBrace = this_.syllableRangeToTimeLength(accData.firstSyllableIndex, accData.midIndex - accData.firstSyllableIndex);
-                let totalTimeSoFarWithinLeft = elapsedTime - this_.syllableRangeToTimeLength(0, accData.firstSyllableIndex);
-                return new GestureLocation(true, totalTimeSoFarWithinLeft / totalTimeOnLeftForBrace );
+            //section is the index of which section of the brace we are in 
+            let sectionIndex = accData.sectionStartIndices.findLastIndex((n : number) => n <= thisSyllableIndex);
+            if (sectionIndex < 0) {
+                throw new Error("Invariant broken: syllable index does not lie within syllable start indices. Index is " + thisSyllableIndex + ", indices are " + accData.sectionStartIndices);
             }
-            //Right side
-            else {
-                let totalTimeOnRightForBrace = this_.syllableRangeToTimeLength(accData.midIndex, accData.lastSyllableIndex - accData.midIndex + 1);
-                let totalTimeSoFarOnRight = elapsedTime - this_.syllableRangeToTimeLength(0, accData.midIndex);
-                return new GestureLocation(false, totalTimeSoFarOnRight / totalTimeOnRightForBrace);
-            }
+            //now we must compute the amount through that section that we are 
+            let totalTimeWithinThisSection = this_.syllableRangeToTimeLength(accData.sectionStartIndices[sectionIndex], accData.sectionStartIndices[sectionIndex + 1] - accData.sectionStartIndices[sectionIndex]);
+            let totalTimeSoFarWithinThisSection = elapsedTime - this_.syllableRangeToTimeLength(0, accData.sectionStartIndices[sectionIndex]);
+            
+            return new DirectionSpecLocation(sectionIndex, totalTimeSoFarWithinThisSection/totalTimeWithinThisSection);
+            
         }
     
-
-        let bracketsAnimationInfos = this.bracketsInfo.get(currentSyllable.syllable_range);
         let parensAnimationInfos = this.parensInfo.get(currentSyllable.syllable_range);
 
-        bracketsAnimationInfos.forEach(i => {
-            i.gestureLocation = locationFromAccData(this.bracketsAccumData.get(i.cctx), this);
-        })
-
         parensAnimationInfos.forEach(i => {
-            i.gestureLocation = locationFromAccData(this.parensAccumData.get(i.rctx), this);
+            i.currentLocation = locationFromAccData(this.parensAccumData.get(i.ctx), this);
+
         })
 
         let currentSyllableRanges = [currentSyllable.syllable_range];
         if (currentSyllable.number_range != undefined) {
             currentSyllableRanges.push(currentSyllable.number_range);
         }
-        return new AnimationInfo(currentSyllableRanges, syllableLocation, bracketsAnimationInfos, parensAnimationInfos);
+        return new AnimationInfo(currentSyllableRanges, syllableLocation, parensAnimationInfos);
     }
 	
 }

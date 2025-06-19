@@ -1,4 +1,4 @@
-/// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
+/// <reference path="../../../node_modules/monaco-editor/monaco.d.ts" />
 import {createLexer} from './Compile'
 import {CommonTokenStream, InputStream, Token, ErrorListener} from 'antlr4'
 import ILineTokens = monaco.languages.ILineTokens;
@@ -72,7 +72,7 @@ class MotorMusicLineTokens implements ILineTokens {
 
 
 
-const CONTEXT_SENSITIVE_TOKENS = ['|'];
+const CONTEXT_SENSITIVE_TOKENS = ['.', '^'];
 
 
 export function tokensForLine(input: string, state : MotorMusicState): monaco.languages.ILineTokens {

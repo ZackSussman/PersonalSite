@@ -1,6 +1,6 @@
-/// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
+/// <reference path="../../../node_modules/monaco-editor/monaco.d.ts" />
 import {CharStream, Token} from "antlr4"
-import MotorMusicLexer from "../../antlr/generated/MotorMusicLexer"
+import MotorMusicLexer from "../../../antlr/generated/MotorMusicLexer"
 
 export function createLexer(input: string) {
     const chars = new CharStream(input);
@@ -14,7 +14,7 @@ export function lex(input: string) : Token[] {
 
 
 import {CommonTokenStream, ErrorListener} from 'antlr4'
-import MotorMusicParser from "../../antlr/generated/MotorMusicParser"
+import MotorMusicParser from "../../../antlr/generated/MotorMusicParser"
 
 class ConsoleErrorListener extends ErrorListener<Token> {
     syntaxError(recognizer, offendingSymbol, line, column, msg, e) {
@@ -80,10 +80,12 @@ function parse(input : string, errors : Error[]) {
 import {ParseTreeWalker} from "antlr4";
 import {MotorMusicParserStaticAnalysisListener} from "./ParserListeners/Statics";
 import {AnimationListener, AnimationInfo} from "./ParserListeners/Animations";
+import { ParenColoringListener } from "./ParserListeners/Coloring";
 import {AudioGeneratorListener} from "./ParserListeners/AudioGeneratorListener";
 import {audioStream} from "./audio/Audio";
+import {range} from "./ParserListeners/ParserListenerUtils";
 export function process(input : string, syllableLength : number) : 
-    [animationFunction, audioStream , Error[]] 
+    [Map<range, string>, animationFunction, audioStream , Error[]] 
     {
     let errors : Error[] = [];
     let tree = parse(input, errors)
@@ -96,11 +98,15 @@ export function process(input : string, syllableLength : number) :
         function packageGetAnimationInfo(x : number) {
             return animationListener.getAnimationInfoForTime(x);
         }
-
-        let audioGeneratorListener = new AudioGeneratorListener(syllableLength, animationListener.bracketsAccumData, animationListener.parensAccumData);
+ 
+        let audioGeneratorListener = new AudioGeneratorListener(syllableLength, animationListener.parensAccumData);
         ParseTreeWalker.DEFAULT.walk(audioGeneratorListener, tree);
 
-        return [packageGetAnimationInfo, audioGeneratorListener.audioStream, errors];
+
+        let colorMapBuilder = new ParenColoringListener();
+        ParseTreeWalker.DEFAULT.walk(colorMapBuilder, tree);
+
+        return [colorMapBuilder.buildColorMap(), packageGetAnimationInfo, audioGeneratorListener.audioStream, errors];
     }
-    return [undefined, undefined, errors];
+    return [undefined, undefined, undefined, errors];
 }

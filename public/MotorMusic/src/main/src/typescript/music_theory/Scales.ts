@@ -2,7 +2,7 @@
 let major_scale_scan = [0, 2, 4, 5, 7, 9, 11, 12];
 
 //map the unit range that is used for tension values to the frequency value of a note from the major scale
-export function map_unit_range_to_major_scale(tension : number) {
+export function map_unit_range_to_major_scale_freq(tension : number) {
     let note = undefined
     //round for normal notes but not at the final transition
     if (tension < 6/7) 
