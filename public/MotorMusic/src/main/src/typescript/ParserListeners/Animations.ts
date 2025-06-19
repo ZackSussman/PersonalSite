@@ -1,10 +1,10 @@
 
-/// <reference path="../../../node_modules/monaco-editor/monaco.d.ts" />
-import MotorMusicParserListener from "../../../antlr/generated/MotorMusicParserListener";
+/// <reference path="../../../../node_modules/monaco-editor/monaco.d.ts" />
+import MotorMusicParserListener from "../../../../antlr/generated/MotorMusicParserListener";
 //                                      context for {|}  context for (|)
 import { SyllableContext, EmptyContext, DirectionSpecContext, TimeTaggedEmptyContext, TimeTaggedSyllableContext, SingleMotionSpecUpContext, 
         SingleMotionSpecDownContext, TowardsPrefixMotionSpecContext, AwayPrefixMotionSpecContext, Motion_spec_listContext, EndAwayFromMotionSpecContext, EndTowardsMotionSpecContext
-} from "../../../antlr/generated/MotorMusicParser";
+} from "../../../../antlr/generated/MotorMusicParser";
 import { TerminalNode } from "antlr4";
 
 
@@ -69,10 +69,11 @@ export class BraceAccumData {
     depth : number 
     sectionStartIndices : number[] //the indices of the first syllable of each section of the brace (in ascending order). 
     //tacked onto the very end of it we will also save the index of the first syllable outside of the brace. This will be used to determine the length of the final section in a clean way. 
-
-    constructor(depth : number) {
+    startsWithTowards : boolean;
+    constructor(depth : number, startsWithTowards : boolean) {
         this.depth = depth;
         this.sectionStartIndices = [];
+        this.startsWithTowards = startsWithTowards;
     }
 
     toString() {
@@ -213,8 +214,15 @@ export class AnimationListener extends MotorMusicParserListener {
     }
 
     enterDirectionSpec = (ctx : DirectionSpecContext) => {
+        let startsWithTowards : boolean = 
+         ctx._motion_spec instanceof SingleMotionSpecDownContext
+                                        ||
+         ctx._motion_spec instanceof TowardsPrefixMotionSpecContext
+                                        || 
+         ctx._motion_spec instanceof EndAwayFromMotionSpecContext
+
         this.currentParensInScope.push(ctx);
-        this.parensAccumData.set(ctx, new BraceAccumData(this.currentParensInScope.length - 1));
+        this.parensAccumData.set(ctx, new BraceAccumData(this.currentParensInScope.length - 1, startsWithTowards));
         this.parensAccumData.get(ctx).sectionStartIndices.push(this.orderedSyllableData.length);   
     }
 
@@ -225,7 +233,7 @@ export class AnimationListener extends MotorMusicParserListener {
     }
 
     visitTerminal = (t : TerminalNode) => {
-        if (t.getText() == "." || t.getText() == "‾") {
+        if (t.getText() == "." || t.getText() == "^") {
             //find the most recent brace context and update the appropriate BraceAccumData
             this.parensAccumData.get(this.currentParensInScope.at(-1)).sectionStartIndices.push(this.orderedSyllableData.length );        
         }

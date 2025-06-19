@@ -1,6 +1,6 @@
-/// <reference path="../../node_modules/monaco-editor/monaco.d.ts" />
+/// <reference path="../../../node_modules/monaco-editor/monaco.d.ts" />
 import {CharStream, Token} from "antlr4"
-import MotorMusicLexer from "../../antlr/generated/MotorMusicLexer"
+import MotorMusicLexer from "../../../antlr/generated/MotorMusicLexer"
 
 export function createLexer(input: string) {
     const chars = new CharStream(input);
@@ -14,7 +14,7 @@ export function lex(input: string) : Token[] {
 
 
 import {CommonTokenStream, ErrorListener} from 'antlr4'
-import MotorMusicParser from "../../antlr/generated/MotorMusicParser"
+import MotorMusicParser from "../../../antlr/generated/MotorMusicParser"
 
 class ConsoleErrorListener extends ErrorListener<Token> {
     syntaxError(recognizer, offendingSymbol, line, column, msg, e) {

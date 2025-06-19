@@ -6,10 +6,10 @@
       "esModuleInterop":true,
       "sourceMap": true,
       "outDir": "generated-javascript",
-      "rootDirs": ["."],
+      "rootDirs": ["src"],
       "lib": ["ES2023"]
     },
     "include" : [
-      "typescript"
+      "src/typescript"
     ]
   }

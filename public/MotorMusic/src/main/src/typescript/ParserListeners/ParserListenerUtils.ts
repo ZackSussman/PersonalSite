@@ -3,7 +3,7 @@
 //defines common procedures used throughout various parser listeners 
 
 import { TerminalNode } from "antlr4";
-import {Motion_spec_listContext, EndAwayFromMotionSpecContext, SingleMotionSpecDownContext, EndTowardsMotionSpecContext, SingleMotionSpecUpContext, TowardsPrefixMotionSpecContext, AwayPrefixMotionSpecContext} from "../../../antlr/generated/MotorMusicParser";
+import {Motion_spec_listContext, EndAwayFromMotionSpecContext, SingleMotionSpecDownContext, EndTowardsMotionSpecContext, SingleMotionSpecUpContext, TowardsPrefixMotionSpecContext, AwayPrefixMotionSpecContext} from "../../../../antlr/generated/MotorMusicParser";
 
 export type range = [number, number, number, number];
 

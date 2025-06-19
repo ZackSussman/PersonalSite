@@ -1,10 +1,10 @@
 import * as monaco from 'monaco-editor';
 monaco.languages.register({ id: 'MotorMusic' });
 
-import { initializeAudioRuntime, setComputedAudio } from './main/javascript/runtime-business/AudioRuntime.js';
-import { setGetAnimationInfoFunction, setSyllableTime, repaintColors, initiateAnimation} from './main/javascript/runtime-business/AnimationRuntime.js';
+import { beginNewPlayback, initializeAudioRuntime, setComputedAudio } from './main/src/runtime-business/AudioRuntime.js';
+import { setGetAnimationInfoFunction, setSyllableTime, repaintColors, initiateAnimation, areWeCurrentlyPlayingBack} from './main/src/runtime-business/AnimationRuntime.js';
 
-import * as MotorMusicTokensProvider from './main/generated-javascript/main/typescript/MotorMusicTokensProvider.js';
+import * as MotorMusicTokensProvider from './main/generated-javascript/main/src/typescript/MotorMusicTokensProvider.js';
 if (typeof window === 'undefined') {
 } else {
     window.MotorMusicTokensProvider = MotorMusicTokensProvider;
@@ -132,14 +132,10 @@ monaco.languages.setLanguageConfiguration('MotorMusic', {
 
 initializeAudioRuntime();
 
-//audioContext.disconnect();
-//audioContext = null;
-//-----------------------------------------
 
 
 //RUNTIME DATA--------------------------------
 var syllableTime = 500; //milliseconds
-var areWeCurrentlyPlayingBack = false;
 
 var currentColorMap = undefined;
 
@@ -188,7 +184,7 @@ function createSyllableTimeSlider() {
 // Call the function to add the slider on page load
 createSyllableTimeSlider();
 
-import {process} from '../src/main/generated-javascript/main/typescript/Compile.js'
+import {process} from './main/generated-javascript/main/src/typescript/Compile.js'
 
 let isCurrentStateCompiled = false;
 
@@ -215,6 +211,7 @@ function consumeText() {
     isCurrentStateCompiled = true;
   } 
   else {
+    console.log("there were errors..." + errors);
     isCurrentStateCompiled = false;
   }
   monaco.editor.setModelMarkers(editor.getModel(), 'owner',
@@ -250,8 +247,10 @@ headerContainer.appendChild(button);
 
 // Add event listener to the button for playback (animations + sound)
 button.addEventListener('click', async () => {
-  if (isCurrentStateCompiled)
+  if (isCurrentStateCompiled && !areWeCurrentlyPlayingBack) {
     initiateAnimation(editor, document, currentColorMap);
+    beginNewPlayback();
+  }
 });
 
 

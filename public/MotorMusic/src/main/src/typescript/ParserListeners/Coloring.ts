@@ -1,9 +1,9 @@
 
-/// <reference path="../../../node_modules/monaco-editor/monaco.d.ts" />
-import MotorMusicParserListener from "../../../antlr/generated/MotorMusicParserListener";
+/// <reference path="../../../../node_modules/monaco-editor/monaco.d.ts" />
+import MotorMusicParserListener from "../../../../antlr/generated/MotorMusicParserListener";
 
 import {range, serializeRange, terminalNodeToRange, getAllDirectionSpecifierRangesFromMotionSpecListContext} from "./ParserListenerUtils";
-import {DirectionSpecContext, EmptyContext, SyllableContext, TimeTaggedEmptyContext, TimeTaggedSyllableContext} from "../../../antlr/generated/MotorMusicParser";
+import {DirectionSpecContext, EmptyContext, SyllableContext, TimeTaggedEmptyContext, TimeTaggedSyllableContext} from "../../../../antlr/generated/MotorMusicParser";
 
 
 //Here is where we dynamically decide the actual colors for all the tokens

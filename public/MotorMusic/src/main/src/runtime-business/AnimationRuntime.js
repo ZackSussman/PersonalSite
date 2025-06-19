@@ -4,10 +4,11 @@ var getAnimationInfoFunction = undefined;
 //the time that playback was started at 
 var startTime = undefined;
 
+import { DELAY_BEFORE_PLAYBACK_START } from '../../generated-javascript/main/src/runtime-business/RuntimeConstants.js';
 
 let actualFrameDuration = undefined;
 
-var areWeCurrentlyPlayingBack = false; //keeps track of whether we are currently animating
+export var areWeCurrentlyPlayingBack = false; //keeps track of whether we are currently animating
 
 //to be set and used during animation
 var intervalId = undefined;
@@ -30,13 +31,6 @@ export function setSyllableTime(syllableTime) {
 export function setGetAnimationInfoFunction(x) {
     getAnimationInfoFunction = x;
 }
-
-export function killAnimationPlayback() {
-    clearInterval(intervalId);
-    decorationsCollection.clear();
-    areWeCurrentlyPlayingBack = false;
-}
-
 
 //util functions for animating------------------------------------
 
@@ -174,22 +168,18 @@ function alterColors(editor, document, colorsToSet) {
     } 
 }
 
-import { serializeRange } from '../../generated-javascript/main/typescript/ParserListeners/ParserListenerUtils';
+import { serializeRange } from '../../generated-javascript/main/src/typescript/ParserListeners/ParserListenerUtils.js';
 //initialColorStateMap is the map of initial colors of the program state before animation begins, mapping ranges to their baseline colors
 export function initiateAnimation(editor, document, initialColorStateMap) {
-    if (areWeCurrentlyPlayingBack) {
-        //don't restart if we are in the middle of playing
-        return;
-    }
-
+    areWeCurrentlyPlayingBack = true;
     startTime = Date.now();
 
     //the runtime logic of the animation...this function will get called from an interval and its job is to continually
     //update the colors based on the computed animation function 
     function animationRuntime() {
         const elapsedTime = Date.now() - startTime;  // Time elapsed in ms
-      
-        let animationInfo = getAnimationInfoFunction(elapsedTime);
+        
+        let animationInfo = getAnimationInfoFunction(Math.max(elapsedTime - DELAY_BEFORE_PLAYBACK_START, 0)); //apply a .1 second shift to align with the delay the audio is forced to have
         //it gives back undefined once elapside time has gone above what there is actual animation for 
         if (animationInfo === undefined) {
             clearInterval(intervalId);

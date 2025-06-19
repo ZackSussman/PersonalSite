@@ -6,7 +6,7 @@ export type audio = [number, number][]
 
 //global values for our audio
 export const BUFFER_SIZE = 128;
-export const SAMPLE_RATE = 48000;
+import {PLAYBACK_SAMPLE_RATE} from "../../runtime-business/RuntimeConstants";
 
 //an audio stream is a list of the audios where each audio has length BUFFER_SIZE
 export type audioStream = audio[]
@@ -15,11 +15,11 @@ export type seconds = number //used to specify when an input to an audio functio
 
 //utility for converting from a duration in seconds to the number of samples that will take (rounded)
 export function durationToSamples(duration : seconds) {
-    return Math.round(SAMPLE_RATE * duration);
+    return Math.round(PLAYBACK_SAMPLE_RATE * duration);
 }
 
 export function numSamplesToDuration(numSamples : number) {
-    return numSamples / SAMPLE_RATE;
+    return numSamples / PLAYBACK_SAMPLE_RATE;
 }
 
 //utility for constructing mono signals
